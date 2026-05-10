@@ -7,6 +7,9 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "CRM — Системаи идораи донишҷӯён",
   description: "Системаи қайди ҳузур ва идораи гурӯҳҳо",
+  icons: {
+    icon: "/logo.svg",
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
