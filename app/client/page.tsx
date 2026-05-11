@@ -23,6 +23,7 @@ import EmptyState from "@/components/ui/EmptyState";
 import ThemeToggle from "@/components/ui/ThemeToggle";
 import Logo from "@/components/ui/Logo";
 import Spinner from "@/components/ui/Spinner";
+import AIChatWidget from "@/components/ai/AIChatWidget";
 import toast from "react-hot-toast";
 import {
   Plus,
@@ -88,6 +89,26 @@ export default function ClientPage() {
 
   useEffect(() => { if (user?.role === "MENTOR") loadGroups(); }, [loadGroups, user]);
   useEffect(() => { loadStudents(); }, [loadStudents]);
+
+  const handleAIGroupCreated = useCallback((group: Group, students: Student[]) => {
+    const groupWithStudents = { ...group, students };
+    setGroups((prev) => [...prev, groupWithStudents]);
+    setSelectedGroup(groupWithStudents);
+    setStudents(students);
+    toast.success(`"${group.name}" гурӯҳ бо ${students.length} талаба илова шуд`);
+  }, []);
+
+  const handleAIStudentsAdded = useCallback((groupId: number, newStudents: Student[]) => {
+    setGroups((prev) =>
+      prev.map((g) =>
+        g.id === groupId ? { ...g, students: [...(g.students || []), ...newStudents] } : g
+      )
+    );
+    if (selectedGroup?.id === groupId) {
+      setStudents((prev) => [...prev, ...newStudents]);
+    }
+    toast.success(`${newStudents.length} талаба илова шуд`);
+  }, [selectedGroup]);
 
   const handleCreateGroup = async (data: { name: string; description?: string }) => {
     const group = await groupsApi.create(data);
@@ -473,6 +494,12 @@ export default function ClientPage() {
         title="Талабаро ҳазф кардан"
         message={`Оё мутмаин ҳастед, ки ${deleteStudent ? formatStudentName(deleteStudent) : ""}-ро ҳазф мекунед?`}
         loading={deletingStudent}
+      />
+
+      <AIChatWidget
+        groups={groups}
+        onGroupCreated={handleAIGroupCreated}
+        onStudentsAdded={handleAIStudentsAdded}
       />
     </div>
   );
