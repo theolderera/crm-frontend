@@ -85,9 +85,9 @@ export const attendanceApi = {
     api
       .get<Attendance[]>(`/attendance/weekly?groupId=${groupId}&weekStart=${weekStart}`)
       .then((r) => r.data),
-  upsert: (data: { studentId: number; date: string; present: boolean }) =>
+  upsert: (data: { studentId: number; date: string; present: boolean; lateMinutes?: number | null; lateNote?: string | null }) =>
     api.post<Attendance>('/attendance', data).then((r) => r.data),
-  bulkUpsert: (data: { date: string; records: { studentId: number; present: boolean }[] }) =>
+  bulkUpsert: (data: { date: string; records: { studentId: number; present: boolean; lateMinutes?: number | null; lateNote?: string | null }[] }) =>
     api.post('/attendance/bulk', data),
 };
 

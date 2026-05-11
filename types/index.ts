@@ -36,6 +36,8 @@ export interface Attendance {
   studentId: number;
   date: string;
   present: boolean;
+  lateMinutes?: number | null;
+  lateNote?: string | null;
   createdAt: string;
 }
 
