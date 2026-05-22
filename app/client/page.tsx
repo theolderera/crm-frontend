@@ -33,6 +33,7 @@ import {
   Edit2,
   Trash2,
   LogOut,
+  FileText,
 } from "lucide-react";
 
 export default function ClientPage() {
@@ -370,6 +371,14 @@ export default function ClientPage() {
                         onNext={() => setWeekStart((w) => navigateWeek(w, "next"))}
                         onToday={() => setWeekStart(getWeekStart(new Date()))}
                       />
+                      <button
+                        onClick={() => router.push(`/client/report?groupId=${selectedGroup.id}`)}
+                        className="flex items-center gap-1.5 px-3 py-2 bg-white dark:bg-slate-800 text-gray-700 dark:text-slate-200 text-sm font-medium rounded-xl border border-gray-200 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-700 active:bg-gray-100 dark:active:bg-slate-600 transition-colors whitespace-nowrap"
+                        title="Ҳисоботи ҳузурро содир кунед"
+                      >
+                        <FileText size={15} className="text-indigo-500 dark:text-indigo-400" />
+                        <span>Ҳисобот</span>
+                      </button>
                       <button
                         onClick={() => setStudentModal({ open: true })}
                         className="flex items-center gap-1.5 px-3 py-2 bg-indigo-600 text-white text-sm font-medium rounded-xl hover:bg-indigo-700 active:bg-indigo-800 transition-colors shadow-sm shadow-indigo-200 dark:shadow-indigo-900/40 whitespace-nowrap"

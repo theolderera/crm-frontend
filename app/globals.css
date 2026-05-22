@@ -86,3 +86,41 @@ html {
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
 }
+
+/* ─── Print / PDF export ─── */
+@media print {
+  html,
+  body {
+    background: #ffffff !important;
+  }
+
+  /* Hide app chrome (top bar, config controls, etc.) */
+  .no-print {
+    display: none !important;
+  }
+
+  /* The report page wrapper becomes the printed page */
+  .print-root {
+    background: #ffffff !important;
+    min-height: 0 !important;
+  }
+  .print-root > div {
+    padding: 0 !important;
+    max-width: none !important;
+  }
+  .print-area {
+    margin: 0 !important;
+  }
+
+  /* Keep every colour exactly as designed on paper */
+  .print-area,
+  .print-area * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  @page {
+    size: A4;
+    margin: 12mm;
+  }
+}

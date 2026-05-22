@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { Group, Student, Attendance, AuthUser } from '@/types';
+import { Group, Student, Attendance, AuthUser, AttendanceReport } from '@/types';
 
 const api = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api',
@@ -89,6 +89,25 @@ export const attendanceApi = {
     api.post<Attendance>('/attendance', data).then((r) => r.data),
   bulkUpsert: (data: { date: string; records: { studentId: number; present: boolean; lateMinutes?: number | null; lateNote?: string | null }[] }) =>
     api.post('/attendance/bulk', data),
+};
+
+// Reports
+export interface ReportParams {
+  groupId: number;
+  from?: string;
+  to?: string;
+}
+
+export const reportsApi = {
+  getAttendance: (params: ReportParams) =>
+    api
+      .get<AttendanceReport>('/reports/attendance', { params })
+      .then((r) => r.data),
+
+  downloadDocx: (params: ReportParams) =>
+    api
+      .get('/reports/attendance/docx', { params, responseType: 'blob' })
+      .then((r) => r.data as Blob),
 };
 
 export { api };

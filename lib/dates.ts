@@ -46,3 +46,11 @@ export function formatWeekRange(weekStart: Date): string {
 export function navigateWeek(weekStart: Date, direction: 'prev' | 'next'): Date {
   return addWeeks(weekStart, direction === 'next' ? 1 : -1);
 }
+
+/** Formats an ISO `yyyy-MM-dd` string as `dd.MM.yyyy` for display. */
+export function formatDMY(iso: string | null | undefined): string {
+  if (!iso) return '—';
+  const [y, m, d] = iso.split('-');
+  if (!y || !m || !d) return iso;
+  return `${d}.${m}.${y}`;
+}

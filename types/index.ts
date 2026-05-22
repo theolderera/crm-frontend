@@ -47,3 +47,38 @@ export type WeekDay = {
   dayName: string;
   isToday: boolean;
 };
+
+/* ─── Attendance report ─── */
+
+export interface StudentReportRow {
+  id: number;
+  name: string;
+  phone: string | null;
+  sessions: number;
+  present: number;
+  absent: number;
+  late: number;
+  lateMinutes: number;
+  /** Attendance percentage, 0–100. */
+  rate: number;
+}
+
+export interface AttendanceReport {
+  group: { id: number; name: string; description: string | null };
+  mentor: string | null;
+  period: { from: string | null; to: string | null };
+  /** First / last date with recorded sessions inside the range. */
+  rangeStart: string | null;
+  rangeEnd: string | null;
+  generatedAt: string;
+  summary: {
+    totalStudents: number;
+    totalSessions: number;
+    present: number;
+    absent: number;
+    late: number;
+    lateMinutes: number;
+    avgRate: number;
+  };
+  students: StudentReportRow[];
+}
