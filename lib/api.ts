@@ -40,6 +40,8 @@ export const usersApi = {
   updateRole: (id: number, role: string) =>
     api.patch<AuthUser>(`/users/${id}/role`, { role }).then((r) => r.data),
   deleteUser: (id: number) => api.delete(`/users/${id}`).then((r) => r.data),
+  // Mentors: search pending users
+  searchPending: (q: string) => api.get<AuthUser[]>(`/users/search?q=${encodeURIComponent(q)}`).then((r) => r.data),
   // Admin: all groups across all mentors
   getAllGroups: () => api.get<(Group & { mentor?: AuthUser })[]>('/users/admin/groups').then((r) => r.data),
   // Admin: all students
@@ -58,6 +60,10 @@ export const groupsApi = {
     api.post<Group>('/groups', data).then((r) => r.data),
   update: (id: number, data: { name?: string; description?: string }) =>
     api.patch<Group>(`/groups/${id}`, data).then((r) => r.data),
+  assignTeacher: (id: number, teacherId: number) =>
+    api.patch<Group>(`/groups/${id}/teacher`, { teacherId }).then((r) => r.data),
+  unassignTeacher: (id: number, teacherId: number) =>
+    api.delete<Group>(`/groups/${id}/teacher/${teacherId}`).then((r) => r.data),
   delete: (id: number) => api.delete(`/groups/${id}`),
 };
 

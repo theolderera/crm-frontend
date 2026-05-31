@@ -4,7 +4,7 @@ export interface AuthUser {
   lastName?: string;
   email: string;
   phone: string;
-  role: 'PENDING' | 'MENTOR' | 'ADMIN';
+  role: 'PENDING' | 'MENTOR' | 'TEACHER' | 'ADMIN';
   isEmailVerified: boolean;
   createdAt: string;
   updatedAt: string;
@@ -15,6 +15,11 @@ export interface Group {
   name: string;
   description?: string;
   mentorId?: number;
+  mentor?: AuthUser;
+  teacherId?: number;
+  teacher?: AuthUser;
+  teacher2Id?: number;
+  teacher2?: AuthUser;
   students: Student[];
   createdAt: string;
   updatedAt: string;

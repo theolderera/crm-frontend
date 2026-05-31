@@ -12,6 +12,7 @@ interface AttendanceGridProps {
   students: Student[];
   weekDays: WeekDay[];
   groupId: number;
+  readOnly?: boolean;
 }
 
 type AttendanceMap = Record<string, boolean>;
@@ -77,7 +78,6 @@ function LatePopup({ studentId, date, currentMinutes, currentNote, onSave, onRem
       className="absolute z-50 bg-white dark:bg-slate-800 rounded-2xl shadow-2xl dark:shadow-slate-900/70 border border-gray-200 dark:border-slate-700 p-4 w-64 animate-in fade-in zoom-in-95 duration-150"
       style={{ top: "100%", left: "50%", transform: "translateX(-50%)", marginTop: "8px" }}
     >
-      {/* Arrow */}
       <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-4 h-4 bg-white dark:bg-slate-800 border-t border-l border-gray-200 dark:border-slate-700 rotate-45" />
 
       <div className="relative">
@@ -86,7 +86,6 @@ function LatePopup({ studentId, date, currentMinutes, currentNote, onSave, onRem
           Дер омадан
         </p>
 
-        {/* Minutes */}
         <label className="text-[11px] font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider mb-1.5 block">
           Чанд дақиқа дер?
         </label>
@@ -114,7 +113,6 @@ function LatePopup({ studentId, date, currentMinutes, currentNote, onSave, onRem
           <span className="text-xs text-gray-400 dark:text-slate-500">дақ</span>
         </div>
 
-        {/* Quick buttons */}
         <div className="flex gap-1.5 mb-3">
           {[5, 10, 15, 30].map((m) => (
             <button
@@ -131,7 +129,6 @@ function LatePopup({ studentId, date, currentMinutes, currentNote, onSave, onRem
           ))}
         </div>
 
-        {/* Note */}
         <label className="text-[11px] font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider mb-1.5 block">
           Сабаб (ихтиёрӣ)
         </label>
@@ -143,7 +140,6 @@ function LatePopup({ studentId, date, currentMinutes, currentNote, onSave, onRem
           className="w-full h-8 px-3 text-sm rounded-lg bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 text-gray-800 dark:text-slate-100 placeholder-gray-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-400 mb-3"
         />
 
-        {/* Actions */}
         <div className="flex gap-2">
           <button
             onClick={() => onSave(studentId, date, minutes, note)}
@@ -237,6 +233,7 @@ export default function AttendanceGrid({
   students,
   weekDays,
   groupId,
+  readOnly,
 }: AttendanceGridProps) {
   const [attendance, setAttendance] = useState<AttendanceMap>({});
   const [lateData, setLateData] = useState<LateMap>({});
@@ -287,6 +284,7 @@ export default function AttendanceGrid({
   }, [loadAttendance]);
 
   const toggle = async (studentId: number, date: string) => {
+    if (readOnly) return;
     const key = makeKey(studentId, date);
     const current = attendance[key] ?? false;
     const next = !current;
@@ -415,6 +413,7 @@ export default function AttendanceGrid({
   };
 
   const handleHwChange = async (studentId: number, date: string, val: string) => {
+    if (readOnly) return;
     const key = makeKey(studentId, date);
     const parsed = val === "" ? null : parseInt(val, 10);
     const hwSolved = parsed !== null && !isNaN(parsed) ? Math.max(0, parsed) : null;
@@ -440,6 +439,7 @@ export default function AttendanceGrid({
   };
 
   const markAllPresent = async (date: string) => {
+    if (readOnly) return;
     const records = students.map((s) => ({ studentId: s.id, present: true, excused: false, excusedReason: null }));
     try {
       await attendanceApi.bulkUpsert({ date, records });
@@ -547,12 +547,14 @@ export default function AttendanceGrid({
                         {stats.absent}✗
                       </span>
                     </div>
-                    <button
-                      onClick={() => markAllPresent(day.date)}
-                      className="text-[10px] text-indigo-500 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 hover:underline transition-colors mt-0.5"
-                    >
-                      Ҳама ҳозир
-                    </button>
+                    {!readOnly && (
+                      <button
+                        onClick={() => markAllPresent(day.date)}
+                        className="text-[10px] text-indigo-500 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 hover:underline transition-colors mt-0.5"
+                      >
+                        Ҳама ҳозир
+                      </button>
+                    )}
                   </div>
                 </th>
               );
@@ -645,7 +647,7 @@ export default function AttendanceGrid({
                         <div className="relative inline-flex flex-col items-center gap-1">
                           <button
                             onClick={() => toggle(student.id, day.date)}
-                            disabled={isTogglingThis}
+                            disabled={isTogglingThis || readOnly}
                             className={`w-9 h-9 rounded-xl flex items-center justify-center mx-auto transition-all duration-150 ${getAttendanceBtnClass(isTogglingThis, isPresent, isLate, isExcused)}`}
                             title={isLate ? `${late?.minutes} дақ дер — ${late?.note || "сабаб нест"}` : isExcused ? `Сабабнок: ${exc?.reason || "номаълум"}` : undefined}
                           >
@@ -673,8 +675,7 @@ export default function AttendanceGrid({
                             )}
                           </button>
 
-                          {/* Late button - only show when present */}
-                          {isPresent && !isTogglingThis && (
+                          {isPresent && !isTogglingThis && !readOnly && (
                             <button
                               onClick={() => setLatePopup(isPopupOpen ? null : { studentId: student.id, date: day.date })}
                               className={`w-6 h-4 rounded-md flex items-center justify-center transition-all text-[9px] font-medium ${
@@ -688,7 +689,6 @@ export default function AttendanceGrid({
                             </button>
                           )}
 
-                          {/* Late Popup */}
                           {isPopupOpen && (
                             <LatePopup
                               studentId={student.id}
@@ -701,8 +701,7 @@ export default function AttendanceGrid({
                             />
                           )}
 
-                          {/* Excused button - only show when absent */}
-                          {!isPresent && !isTogglingThis && (
+                          {!isPresent && !isTogglingThis && !readOnly && (
                             <button
                               onClick={() => setExcusedPopup(isExcPopupOpen ? null : { studentId: student.id, date: day.date })}
                               className={`w-6 h-4 rounded-md flex items-center justify-center transition-all text-[9px] font-medium ${
@@ -735,8 +734,9 @@ export default function AttendanceGrid({
                               min="0"
                               placeholder="📝"
                               value={hwVal}
+                              disabled={readOnly}
                               onChange={(e) => handleHwChange(student.id, day.date, e.target.value)}
-                              className="w-10 h-5 text-center text-[10px] font-bold rounded-md bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-gray-700 dark:text-slate-300 focus:outline-none focus:ring-1 focus:ring-purple-400 placeholder:text-[9px]"
+                              className="w-10 h-5 text-center text-[10px] font-bold rounded-md bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-gray-700 dark:text-slate-300 focus:outline-none focus:ring-1 focus:ring-purple-400 placeholder:text-[9px] disabled:opacity-50 disabled:cursor-not-allowed"
                               title="Шумораи масъалаҳои ҳалшуда"
                             />
                           </div>

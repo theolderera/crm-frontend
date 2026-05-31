@@ -89,7 +89,7 @@ export default function ReportPage() {
 
   /* ─── Load groups ─── */
   useEffect(() => {
-    if (user?.role !== "MENTOR") return;
+    if (user?.role !== "MENTOR" && user?.role !== "TEACHER") return;
     let cancelled = false;
     groupsApi
       .getAll()
@@ -199,7 +199,7 @@ export default function ReportPage() {
   };
 
   /* ─── Loading / redirect ─── */
-  if (authLoading || (user?.role === "MENTOR" && loadingGroups)) {
+  if (authLoading || ((user?.role === "MENTOR" || user?.role === "TEACHER") && loadingGroups)) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-slate-950">
         <div className="flex flex-col items-center gap-3">
@@ -211,7 +211,7 @@ export default function ReportPage() {
       </div>
     );
   }
-  if (user?.role !== "MENTOR") return null;
+  if (user?.role !== "MENTOR" && user?.role !== "TEACHER") return null;
 
   const exportDisabled = !report || reportLoading || invalidRange;
 

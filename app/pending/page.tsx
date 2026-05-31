@@ -17,7 +17,7 @@ export default function PendingPage() {
     if (loading) return;
     if (!user) router.replace("/login");
     else if (!user.isEmailVerified) router.replace("/register?step=verify");
-    else if (user.role === "MENTOR") router.replace("/client");
+    else if (user.role === "MENTOR" || user.role === "TEACHER") router.replace("/client");
     else if (user.role === "ADMIN") router.replace("/admin");
   }, [user, loading, router]);
 

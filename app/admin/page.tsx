@@ -27,6 +27,7 @@ import {
 import ThemeToggle from "@/components/ui/ThemeToggle";
 import Logo from "@/components/ui/Logo";
 import Spinner from "@/components/ui/Spinner";
+import ConfirmDialog from "@/components/ui/ConfirmDialog";
 import AdminGroupDetail from "@/components/admin/AdminGroupDetail";
 
 type Tab = "dashboard" | "users" | "groups" | "students";
@@ -35,6 +36,7 @@ type AdminGroup = Group & { mentor?: AuthUser };
 const ROLE_LABEL: Record<string, string> = {
   PENDING: "Дар интизор",
   MENTOR: "Ментор",
+  TEACHER: "Муаллими Асосӣ",
   ADMIN: "Админ",
 };
 
@@ -51,6 +53,13 @@ function AdminContent() {
   const [search, setSearch] = useState("");
   const [changingRole, setChangingRole] = useState<number | null>(null);
   const [deletingId, setDeletingId] = useState<number | null>(null);
+  
+  const [confirmModal, setConfirmModal] = useState<{
+    isOpen: boolean;
+    type: 'user' | 'group' | 'student';
+    id: number | null;
+    message: string;
+  }>({ isOpen: false, type: 'user', id: null, message: '' });
 
   /** Group currently opened in the detail / report view. */
   const [selectedGroupId, setSelectedGroupId] = useState<number | null>(null);
@@ -62,6 +71,7 @@ function AdminContent() {
   useEffect(() => {
     if (authLoading) return;
     if (!currentUser) router.replace("/login");
+    else if (currentUser.role === "MENTOR" || currentUser.role === "TEACHER") router.replace("/client");
     else if (currentUser.role !== "ADMIN") router.replace("/pending");
   }, [currentUser, authLoading, router]);
 
@@ -112,46 +122,56 @@ function AdminContent() {
       toast.error("Шумо худро нест карда наметавонед");
       return;
     }
-    if (!confirm("Оё шумо мутмаин ҳастед? Ҳама маълумоти ин корбар нест мешавад."))
-      return;
-    setDeletingId(id);
-    try {
-      await usersApi.deleteUser(id);
-      setUsers((prev) => prev.filter((u) => u.id !== id));
-      toast.success("Корбар нест карда шуд");
-    } catch {
-      toast.error("Хатогӣ");
-    } finally {
-      setDeletingId(null);
-    }
+    setConfirmModal({
+      isOpen: true,
+      type: 'user',
+      id,
+      message: "Оё шумо мутмаин ҳастед? Ҳама маълумоти ин корбар нест мешавад.",
+    });
   }
 
   async function handleDeleteGroup(id: number) {
-    if (!confirm("Гурӯҳро нест мекунед? Донишҷӯён ва ҳузури онҳо низ нест мешавад."))
-      return;
-    setDeletingId(id);
-    try {
-      await usersApi.deleteGroup(id);
-      setGroups((prev) => prev.filter((g) => g.id !== id));
-      setStudents((prev) => prev.filter((s) => s.groupId !== id));
-      if (selectedGroupId === id) setSelectedGroupId(null);
-      toast.success("Гурӯҳ нест шуд");
-    } catch {
-      toast.error("Хатогӣ");
-    } finally {
-      setDeletingId(null);
-    }
+    setConfirmModal({
+      isOpen: true,
+      type: 'group',
+      id,
+      message: "Гурӯҳро нест мекунед? Донишҷӯён ва ҳузури онҳо низ нест мешавад.",
+    });
   }
 
   async function handleDeleteStudent(id: number) {
-    if (!confirm("Донишҷӯро нест мекунед?")) return;
+    setConfirmModal({
+      isOpen: true,
+      type: 'student',
+      id,
+      message: "Донишҷӯро нест мекунед?",
+    });
+  }
+
+  async function handleConfirmDelete() {
+    const { type, id } = confirmModal;
+    if (!id) return;
+
     setDeletingId(id);
     try {
-      await usersApi.deleteStudent(id);
-      setStudents((prev) => prev.filter((s) => s.id !== id));
-      toast.success("Донишҷӯ нест шуд");
+      if (type === 'user') {
+        await usersApi.deleteUser(id);
+        setUsers((prev) => prev.filter((u) => u.id !== id));
+        toast.success("Корбар нест карда шуд");
+      } else if (type === 'group') {
+        await usersApi.deleteGroup(id);
+        setGroups((prev) => prev.filter((g) => g.id !== id));
+        setStudents((prev) => prev.filter((s) => s.groupId !== id));
+        if (selectedGroupId === id) setSelectedGroupId(null);
+        toast.success("Гурӯҳ нест шуд");
+      } else if (type === 'student') {
+        await usersApi.deleteStudent(id);
+        setStudents((prev) => prev.filter((s) => s.id !== id));
+        toast.success("Донишҷӯ нест шуд");
+      }
+      setConfirmModal({ ...confirmModal, isOpen: false });
     } catch {
-      toast.error("Хатогӣ");
+      toast.error("Хатогӣ ҳангоми несткунӣ");
     } finally {
       setDeletingId(null);
     }
@@ -294,6 +314,9 @@ function AdminContent() {
           <AdminGroupDetail
             group={selectedGroup}
             onBack={() => setSelectedGroupId(null)}
+            onGroupUpdate={(g) => {
+              setGroups(prev => prev.map(gr => gr.id === g.id ? {...gr, teacher: g.teacher, teacherId: g.teacherId, teacher2: g.teacher2, teacher2Id: g.teacher2Id} : gr));
+            }}
           />
         ) : (
           <>
@@ -443,6 +466,15 @@ function AdminContent() {
           </>
         )}
       </div>
+
+      <ConfirmDialog
+        isOpen={confirmModal.isOpen}
+        onClose={() => setConfirmModal({ ...confirmModal, isOpen: false })}
+        onConfirm={handleConfirmDelete}
+        title="Тасдиқи ҳазф"
+        message={confirmModal.message}
+        loading={deletingId !== null}
+      />
     </div>
   );
 }
@@ -621,6 +653,7 @@ function RoleSelect({
     >
       <option value="PENDING">{ROLE_LABEL.PENDING}</option>
       <option value="MENTOR">{ROLE_LABEL.MENTOR}</option>
+      <option value="TEACHER">{ROLE_LABEL.TEACHER}</option>
       <option value="ADMIN">{ROLE_LABEL.ADMIN}</option>
     </select>
   );
@@ -969,7 +1002,8 @@ function StudentsPanel({
           </tbody>
         </table>
       </div>
-    </>
+
+      </>
   );
 }
 

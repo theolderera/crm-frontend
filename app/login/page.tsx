@@ -33,7 +33,7 @@ export default function LoginPage() {
       login(token, user);
       toast.success(`Хуш омадед, ${user.firstName}!`);
       if (user.role === "ADMIN") router.replace("/admin");
-      else if (user.role === "MENTOR") router.replace("/client");
+      else if (user.role === "MENTOR" || user.role === "TEACHER") router.replace("/client");
       else router.replace("/pending");
     } catch (err: unknown) {
       const error = err as { response?: { data?: { message?: string | string[] } } };

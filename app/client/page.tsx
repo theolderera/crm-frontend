@@ -14,6 +14,7 @@ import {
 import { formatStudentName, getStudentInitials } from "@/lib/formatters";
 import GroupCard from "@/components/groups/GroupCard";
 import GroupForm from "@/components/groups/GroupForm";
+import TeacherAssign from "@/components/groups/TeacherAssign";
 import StudentForm from "@/components/students/StudentForm";
 import AttendanceGrid from "@/components/attendance/AttendanceGrid";
 import WeekNavigator from "@/components/attendance/WeekNavigator";
@@ -60,6 +61,9 @@ export default function ClientPage() {
     else if (user.role === "ADMIN") router.replace("/admin");
   }, [user, authLoading, router]);
 
+  const isMentor = user?.role === "MENTOR";
+  const isTeacher = user?.role === "TEACHER";
+
   const weekDays = useMemo(() => getWeekDays(weekStart), [weekStart]);
   const isCurrentWeek = useMemo(
     () => formatDate(weekStart) === formatDate(getWeekStart(new Date())),
@@ -88,7 +92,7 @@ export default function ClientPage() {
     }
   }, [selectedGroup]);
 
-  useEffect(() => { if (user?.role === "MENTOR") loadGroups(); }, [loadGroups, user]);
+  useEffect(() => { if (user?.role === "MENTOR" || user?.role === "TEACHER") loadGroups(); }, [loadGroups, user]);
   useEffect(() => { loadStudents(); }, [loadStudents]);
 
   const handleAIGroupCreated = useCallback((group: Group, students: Student[]) => {
@@ -264,7 +268,7 @@ export default function ClientPage() {
           <div className="flex items-center justify-between mb-2.5">
             <h2 className="text-xs font-bold text-gray-500 dark:text-slate-400 uppercase tracking-wider">Гурӯҳҳо</h2>
             <div className="flex items-center gap-1.5">
-              {selectedGroup && (
+              {selectedGroup && isMentor && (
                 <>
                   <button
                     onClick={() => setGroupModal({ open: true, editing: selectedGroup })}
@@ -280,12 +284,14 @@ export default function ClientPage() {
                   </button>
                 </>
               )}
-              <button
-                onClick={() => setGroupModal({ open: true })}
-                className="flex items-center gap-1 px-2.5 py-1.5 bg-indigo-600 text-white text-xs font-medium rounded-lg hover:bg-indigo-700 active:bg-indigo-800 transition-colors"
-              >
-                <Plus size={13} /> Нав
-              </button>
+              {isMentor && (
+                <button
+                  onClick={() => setGroupModal({ open: true })}
+                  className="flex items-center gap-1 px-2.5 py-1.5 bg-indigo-600 text-white text-xs font-medium rounded-lg hover:bg-indigo-700 active:bg-indigo-800 transition-colors"
+                >
+                  <Plus size={13} /> Нав
+                </button>
+              )}
             </div>
           </div>
 
@@ -324,16 +330,18 @@ export default function ClientPage() {
           <aside className="hidden lg:flex w-64 flex-shrink-0 flex-col gap-3">
             <div className="flex items-center justify-between">
               <h2 className="text-xs font-bold text-gray-500 dark:text-slate-400 uppercase tracking-wider">Гурӯҳҳо</h2>
-              <button
-                onClick={() => setGroupModal({ open: true })}
-                className="flex items-center gap-1 px-2.5 py-1.5 bg-indigo-600 text-white text-xs font-medium rounded-lg hover:bg-indigo-700 active:bg-indigo-800 transition-colors"
-              >
-                <Plus size={13} /> Нав
-              </button>
+              {isMentor && (
+                <button
+                  onClick={() => setGroupModal({ open: true })}
+                  className="flex items-center gap-1 px-2.5 py-1.5 bg-indigo-600 text-white text-xs font-medium rounded-lg hover:bg-indigo-700 active:bg-indigo-800 transition-colors"
+                >
+                  <Plus size={13} /> Нав
+                </button>
+              )}
             </div>
             <div className="flex flex-col gap-2 overflow-y-auto pr-0.5" style={{ maxHeight: "calc(100vh - 160px)" }}>
               {groups.length === 0 ? (
-                <EmptyState icon={Users} title="Гурӯҳ нест" description="Гурӯҳи аввалро илова кунед" />
+                <EmptyState icon={Users} title="Гурӯҳ нест" description={isMentor ? "Гурӯҳи аввалро илова кунед" : "Ба шумо ягон гурӯҳ вобаста нашудааст"} />
               ) : (
                 groups.map((group) => (
                   <GroupCard
@@ -341,8 +349,8 @@ export default function ClientPage() {
                     group={group}
                     isActive={selectedGroup?.id === group.id}
                     onClick={() => setSelectedGroup(group)}
-                    onEdit={() => setGroupModal({ open: true, editing: group })}
-                    onDelete={() => setDeleteGroup(group)}
+                    onEdit={isMentor ? () => setGroupModal({ open: true, editing: group }) : undefined}
+                    onDelete={isMentor ? () => setDeleteGroup(group) : undefined}
                   />
                 ))
               )}
@@ -379,14 +387,16 @@ export default function ClientPage() {
                         <FileText size={15} className="text-indigo-500 dark:text-indigo-400" />
                         <span>Ҳисобот</span>
                       </button>
-                      <button
-                        onClick={() => setStudentModal({ open: true })}
-                        className="flex items-center gap-1.5 px-3 py-2 bg-indigo-600 text-white text-sm font-medium rounded-xl hover:bg-indigo-700 active:bg-indigo-800 transition-colors shadow-sm shadow-indigo-200 dark:shadow-indigo-900/40 whitespace-nowrap"
-                      >
-                        <UserPlus size={15} />
-                        <span className="hidden sm:inline">Талаба илова</span>
-                        <span className="sm:hidden">Илова</span>
-                      </button>
+                      {isMentor && (
+                        <button
+                          onClick={() => setStudentModal({ open: true })}
+                          className="flex items-center gap-1.5 px-3 py-2 bg-indigo-600 text-white text-sm font-medium rounded-xl hover:bg-indigo-700 active:bg-indigo-800 transition-colors shadow-sm shadow-indigo-200 dark:shadow-indigo-900/40 whitespace-nowrap"
+                        >
+                          <UserPlus size={15} />
+                          <span className="hidden sm:inline">Талаба илова</span>
+                          <span className="sm:hidden">Илова</span>
+                        </button>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -405,11 +415,11 @@ export default function ClientPage() {
                     </div>
                   </div>
                   <div className="overflow-auto">
-                    <AttendanceGrid students={students} weekDays={weekDays} groupId={selectedGroup.id} />
+                    <AttendanceGrid students={students} weekDays={weekDays} groupId={selectedGroup.id} readOnly={isTeacher} />
                   </div>
 
                   {/* Student management */}
-                  {students.length > 0 && (
+                  {students.length > 0 && isMentor && (
                     <div className="border-t border-gray-50 dark:border-slate-800 px-4 py-3">
                       <p className="text-xs font-semibold text-gray-400 dark:text-slate-500 uppercase tracking-wider mb-2">
                         Идоракунии талабагон
@@ -449,6 +459,16 @@ export default function ClientPage() {
                     </div>
                   )}
                 </div>
+
+                {isMentor && (
+                  <TeacherAssign 
+                    group={selectedGroup} 
+                    onAssigned={(g) => {
+                      setGroups(prev => prev.map(gr => gr.id === g.id ? {...gr, teacher: g.teacher, teacherId: g.teacherId, teacher2: g.teacher2, teacher2Id: g.teacher2Id} : gr));
+                      setSelectedGroup(prev => prev?.id === g.id ? {...prev, teacher: g.teacher, teacherId: g.teacherId, teacher2: g.teacher2, teacher2Id: g.teacher2Id} : prev);
+                    }} 
+                  />
+                )}
               </>
             ) : (
               <div className="flex-1 bg-white dark:bg-slate-900 rounded-2xl border border-gray-100 dark:border-slate-800 shadow-sm flex items-center justify-center min-h-[300px] sm:min-h-[400px]">

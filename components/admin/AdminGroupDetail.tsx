@@ -12,6 +12,7 @@ import {
 import { Group, AuthUser, AttendanceReport } from "@/types";
 import { reportsApi } from "@/lib/api";
 import AttendanceReportView from "@/components/reports/AttendanceReportView";
+import TeacherAssign from "@/components/groups/TeacherAssign";
 import Spinner from "@/components/ui/Spinner";
 import EmptyState from "@/components/ui/EmptyState";
 import toast from "react-hot-toast";
@@ -62,9 +63,11 @@ function presetRange(preset: Preset): { from: string; to: string } {
 export default function AdminGroupDetail({
   group,
   onBack,
+  onGroupUpdate,
 }: {
   group: Group & { mentor?: AuthUser };
   onBack: () => void;
+  onGroupUpdate: (updatedGroup: Group) => void;
 }) {
   const [preset, setPreset] = useState<Preset>("month");
   const initial = presetRange("month");
@@ -278,6 +281,13 @@ export default function AdminGroupDetail({
             </p>
           )}
         </div>
+      </div>
+
+      <div className="no-print">
+        <TeacherAssign 
+          group={group} 
+          onAssigned={(updatedGroup) => onGroupUpdate(updatedGroup)} 
+        />
       </div>
 
       {/* ─── Report ─── */}
