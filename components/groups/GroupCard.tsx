@@ -7,8 +7,8 @@ interface GroupCardProps {
   group: Group;
   isActive: boolean;
   onClick: () => void;
-  onEdit: () => void;
-  onDelete: () => void;
+  onEdit?: () => void;
+  onDelete?: () => void;
 }
 
 export default function GroupCard({ group, isActive, onClick, onEdit, onDelete }: GroupCardProps) {
@@ -44,26 +44,30 @@ export default function GroupCard({ group, isActive, onClick, onEdit, onDelete }
           </div>
         </div>
         <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
-          <button
-            onClick={onEdit}
-            className={`p-1.5 rounded-lg transition-colors ${
-              isActive
-                ? 'hover:bg-indigo-500 text-indigo-200 hover:text-white'
-                : 'hover:bg-gray-100 dark:hover:bg-slate-800 text-gray-400 dark:text-slate-500 hover:text-gray-600 dark:hover:text-slate-300'
-            }`}
-          >
-            <Edit2 size={14} />
-          </button>
-          <button
-            onClick={onDelete}
-            className={`p-1.5 rounded-lg transition-colors ${
-              isActive
-                ? 'hover:bg-indigo-500 text-indigo-200 hover:text-red-300'
-                : 'hover:bg-red-50 dark:hover:bg-red-900/30 text-gray-400 dark:text-slate-500 hover:text-red-500'
-            }`}
-          >
-            <Trash2 size={14} />
-          </button>
+          {onEdit && (
+            <button
+              onClick={onEdit}
+              className={`p-1.5 rounded-lg transition-colors ${
+                isActive
+                  ? 'hover:bg-indigo-500 text-indigo-200 hover:text-white'
+                  : 'hover:bg-gray-100 dark:hover:bg-slate-800 text-gray-400 dark:text-slate-500 hover:text-gray-600 dark:hover:text-slate-300'
+              }`}
+            >
+              <Edit2 size={14} />
+            </button>
+          )}
+          {onDelete && (
+            <button
+              onClick={onDelete}
+              className={`p-1.5 rounded-lg transition-colors ${
+                isActive
+                  ? 'hover:bg-indigo-500 text-indigo-200 hover:text-red-300'
+                  : 'hover:bg-red-50 dark:hover:bg-red-900/30 text-gray-400 dark:text-slate-500 hover:text-red-500'
+              }`}
+            >
+              <Trash2 size={14} />
+            </button>
+          )}
         </div>
       </div>
       {isActive && <ChevronRight size={16} className="absolute right-3 bottom-3 text-indigo-300" />}
