@@ -1,10 +1,10 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { Student, WeekDay } from "@/types";
 import { attendanceApi } from "@/lib/api";
 import { getStudentInitials, formatStudentName } from "@/lib/formatters";
-import { Check, X, Clock } from "lucide-react";
+import { Check, X, Clock, Info } from "lucide-react";
 import Spinner from "@/components/ui/Spinner";
 import toast from "react-hot-toast";
 
@@ -16,6 +16,8 @@ interface AttendanceGridProps {
 
 type AttendanceMap = Record<string, boolean>;
 type LateMap = Record<string, { minutes: number | null; note: string | null }>;
+type ExcusedMap = Record<string, { excused: boolean; reason: string | null }>;
+type HwMap = Record<string, number | null>;
 
 function makeKey(studentId: number, date: string) {
   return `${studentId}_${date}`;
@@ -25,12 +27,15 @@ function getAttendanceBtnClass(
   isToggling: boolean,
   isPresent: boolean,
   isLate: boolean,
+  isExcused: boolean,
 ): string {
   if (isToggling) return "opacity-50 cursor-wait bg-gray-100 dark:bg-slate-800";
   if (isPresent && isLate)
     return "bg-amber-400 hover:bg-amber-500 shadow-sm shadow-amber-200 dark:shadow-amber-900/30";
   if (isPresent)
     return "bg-green-500 hover:bg-green-600 shadow-sm shadow-green-200 dark:shadow-green-900/30";
+  if (isExcused)
+    return "bg-red-500 hover:bg-red-600 shadow-sm shadow-red-200 dark:shadow-red-900/30";
   return "bg-gray-100 dark:bg-slate-800 hover:bg-red-50 dark:hover:bg-red-900/20 border border-gray-200 dark:border-slate-700 hover:border-red-200 dark:hover:border-red-800";
 }
 
@@ -160,6 +165,73 @@ function LatePopup({ studentId, date, currentMinutes, currentNote, onSave, onRem
   );
 }
 
+/* ─── Excused Popup ─── */
+interface ExcusedPopupProps {
+  studentId: number;
+  date: string;
+  currentReason: string | null;
+  onSave: (studentId: number, date: string, reason: string) => void;
+  onRemove: (studentId: number, date: string) => void;
+  onClose: () => void;
+}
+
+function ExcusedPopup({ studentId, date, currentReason, onSave, onRemove, onClose }: ExcusedPopupProps) {
+  const [reason, setReason] = useState(currentReason ?? "");
+  const popupRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (popupRef.current && !popupRef.current.contains(e.target as Node)) {
+        onClose();
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [onClose]);
+
+  return (
+    <div
+      ref={popupRef}
+      className="absolute z-50 bg-white dark:bg-slate-800 rounded-2xl shadow-2xl dark:shadow-slate-900/70 border border-gray-200 dark:border-slate-700 p-4 w-64 animate-in fade-in zoom-in-95 duration-150"
+      style={{ top: "100%", left: "50%", transform: "translateX(-50%)", marginTop: "8px" }}
+    >
+      <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-4 h-4 bg-white dark:bg-slate-800 border-t border-l border-gray-200 dark:border-slate-700 rotate-45" />
+      <div className="relative">
+        <p className="text-xs font-bold text-gray-700 dark:text-slate-200 mb-3 flex items-center gap-1.5">
+          <Info size={13} className="text-red-500" />
+          Сабаби ғайбат
+        </p>
+        <label className="text-[11px] font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider mb-1.5 block">
+          Чаро наомад?
+        </label>
+        <input
+          type="text"
+          value={reason}
+          onChange={(e) => setReason(e.target.value)}
+          placeholder="мас: бемор, иҷозат гирифт..."
+          className="w-full h-8 px-3 text-sm rounded-lg bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 text-gray-800 dark:text-slate-100 placeholder-gray-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-red-400 mb-3"
+        />
+        <div className="flex gap-2">
+          <button
+            onClick={() => onSave(studentId, date, reason)}
+            className="flex-1 py-2 text-xs font-bold rounded-xl bg-red-500 hover:bg-red-600 text-white transition-colors shadow-sm"
+          >
+            Сабт кунед
+          </button>
+          {currentReason != null && (
+            <button
+              onClick={() => onRemove(studentId, date)}
+              className="py-2 px-3 text-xs font-medium rounded-xl bg-gray-100 dark:bg-slate-700 hover:bg-red-50 dark:hover:bg-red-900/30 text-gray-500 dark:text-slate-400 hover:text-red-500 transition-colors"
+            >
+              Нест
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /* ─── Main Grid ─── */
 export default function AttendanceGrid({
   students,
@@ -168,9 +240,12 @@ export default function AttendanceGrid({
 }: AttendanceGridProps) {
   const [attendance, setAttendance] = useState<AttendanceMap>({});
   const [lateData, setLateData] = useState<LateMap>({});
+  const [excusedData, setExcusedData] = useState<ExcusedMap>({});
+  const [hwData, setHwData] = useState<HwMap>({});
   const [loading, setLoading] = useState(false);
   const [toggling, setToggling] = useState<string | null>(null);
   const [latePopup, setLatePopup] = useState<{ studentId: number; date: string } | null>(null);
+  const [excusedPopup, setExcusedPopup] = useState<{ studentId: number; date: string } | null>(null);
 
   const weekStartDate = weekDays[0]?.date ?? "";
 
@@ -181,6 +256,8 @@ export default function AttendanceGrid({
       const records = await attendanceApi.getWeekly(groupId, weekStartDate);
       const map: AttendanceMap = {};
       const late: LateMap = {};
+      const exc: ExcusedMap = {};
+      const hw: HwMap = {};
       records.forEach((r) => {
         const key = makeKey(r.studentId, r.date);
         map[key] = r.present;
@@ -188,9 +265,16 @@ export default function AttendanceGrid({
           minutes: r.lateMinutes ?? null,
           note: r.lateNote ?? null,
         };
+        exc[key] = {
+          excused: r.excused ?? false,
+          reason: r.excusedReason ?? null,
+        };
+        hw[key] = r.hwSolved ?? null;
       });
       setAttendance(map);
       setLateData(late);
+      setExcusedData(exc);
+      setHwData(hw);
     } catch {
       toast.error("Маълумот бор нашуд");
     } finally {
@@ -210,9 +294,10 @@ export default function AttendanceGrid({
     setToggling(key);
     setAttendance((prev) => ({ ...prev, [key]: next }));
 
-    // If toggling to absent, clear late data
     if (!next) {
       setLateData((prev) => ({ ...prev, [key]: { minutes: null, note: null } }));
+    } else {
+      setExcusedData((prev) => ({ ...prev, [key]: { excused: false, reason: null } }));
     }
 
     try {
@@ -222,6 +307,8 @@ export default function AttendanceGrid({
         present: next,
         lateMinutes: next ? (lateData[key]?.minutes ?? null) : null,
         lateNote: next ? (lateData[key]?.note ?? null) : null,
+        excused: !next ? (excusedData[key]?.excused ?? false) : false,
+        excusedReason: !next ? (excusedData[key]?.reason ?? null) : null,
       });
     } catch {
       setAttendance((prev) => ({ ...prev, [key]: current }));
@@ -245,6 +332,8 @@ export default function AttendanceGrid({
         present: true,
         lateMinutes: minutes,
         lateNote: note || null,
+        excused: false,
+        excusedReason: null,
       });
       toast.success(`${minutes} дақиқа дер сабт шуд`);
     } catch {
@@ -267,6 +356,8 @@ export default function AttendanceGrid({
         present: true,
         lateMinutes: null,
         lateNote: null,
+        excused: false,
+        excusedReason: null,
       });
       toast.success("Дер бардошта шуд");
     } catch {
@@ -275,15 +366,92 @@ export default function AttendanceGrid({
     }
   };
 
+  const handleSaveExcused = async (studentId: number, date: string, reason: string) => {
+    const key = makeKey(studentId, date);
+    setExcusedPopup(null);
+
+    const prevExc = excusedData[key] ?? { excused: false, reason: null };
+    setExcusedData((prev) => ({ ...prev, [key]: { excused: true, reason } }));
+
+    try {
+      await attendanceApi.upsert({
+        studentId,
+        date,
+        present: false,
+        lateMinutes: null,
+        lateNote: null,
+        excused: true,
+        excusedReason: reason || null,
+      });
+      toast.success("Сабабнок сабт шуд");
+    } catch {
+      setExcusedData((prev) => ({ ...prev, [key]: prevExc }));
+      toast.error("Сабт нашуд");
+    }
+  };
+
+  const handleRemoveExcused = async (studentId: number, date: string) => {
+    const key = makeKey(studentId, date);
+    setExcusedPopup(null);
+
+    const prevExc = excusedData[key] ?? { excused: false, reason: null };
+    setExcusedData((prev) => ({ ...prev, [key]: { excused: false, reason: null } }));
+
+    try {
+      await attendanceApi.upsert({
+        studentId,
+        date,
+        present: false,
+        lateMinutes: null,
+        lateNote: null,
+        excused: false,
+        excusedReason: null,
+      });
+      toast.success("Сабабнок бардошта шуд");
+    } catch {
+      setExcusedData((prev) => ({ ...prev, [key]: prevExc }));
+      toast.error("Хатогӣ рӯй дод");
+    }
+  };
+
+  const handleHwChange = async (studentId: number, date: string, val: string) => {
+    const key = makeKey(studentId, date);
+    const parsed = val === "" ? null : parseInt(val, 10);
+    const hwSolved = parsed !== null && !isNaN(parsed) ? Math.max(0, parsed) : null;
+    
+    const prevHw = hwData[key] ?? null;
+    setHwData((prev) => ({ ...prev, [key]: hwSolved }));
+
+    try {
+      await attendanceApi.upsert({
+        studentId,
+        date,
+        present: attendance[key] ?? false,
+        lateMinutes: lateData[key]?.minutes ?? null,
+        lateNote: lateData[key]?.note ?? null,
+        excused: excusedData[key]?.excused ?? false,
+        excusedReason: excusedData[key]?.reason ?? null,
+        hwSolved,
+      });
+    } catch {
+      setHwData((prev) => ({ ...prev, [key]: prevHw }));
+      toast.error("Сабт нашуд");
+    }
+  };
+
   const markAllPresent = async (date: string) => {
-    const records = students.map((s) => ({ studentId: s.id, present: true }));
+    const records = students.map((s) => ({ studentId: s.id, present: true, excused: false, excusedReason: null }));
     try {
       await attendanceApi.bulkUpsert({ date, records });
       const updates: AttendanceMap = {};
+      const excUpdates: ExcusedMap = {};
       students.forEach((s) => {
-        updates[makeKey(s.id, date)] = true;
+        const key = makeKey(s.id, date);
+        updates[key] = true;
+        excUpdates[key] = { excused: false, reason: null };
       });
       setAttendance((prev) => ({ ...prev, ...updates }));
+      setExcusedData((prev) => ({ ...prev, ...excUpdates }));
       toast.success("Ҳама ҳозир қайд шуд");
     } catch {
       toast.error("Хатогӣ рӯй дод");
@@ -298,7 +466,12 @@ export default function AttendanceGrid({
       const key = makeKey(s.id, date);
       return attendance[key] === true && lateData[key]?.minutes != null && lateData[key].minutes! > 0;
     }).length;
-    return { present, absent: students.length - present, late: lateCount };
+    const excusedCount = students.filter((s) => {
+      const key = makeKey(s.id, date);
+      return attendance[key] === false && excusedData[key]?.excused === true;
+    }).length;
+    const hwTotal = students.reduce((sum, s) => sum + (hwData[makeKey(s.id, date)] ?? 0), 0);
+    return { present, absent: students.length - present - excusedCount, late: lateCount, excused: excusedCount, hw: hwTotal };
   };
 
   if (loading) {
@@ -360,6 +533,16 @@ export default function AttendanceGrid({
                           {stats.late}⏱
                         </span>
                       )}
+                      {stats.excused > 0 && (
+                        <span className="text-[10px] text-red-500 dark:text-red-400 font-medium">
+                          {stats.excused}ℹ️
+                        </span>
+                      )}
+                      {stats.hw > 0 && (
+                        <span className="text-[10px] text-purple-500 dark:text-purple-400 font-medium">
+                          {stats.hw}📝
+                        </span>
+                      )}
                       <span className="text-[10px] text-red-400 dark:text-red-500 font-medium">
                         {stats.absent}✗
                       </span>
@@ -401,6 +584,14 @@ export default function AttendanceGrid({
                 const key = makeKey(student.id, d.date);
                 return sum + (lateData[key]?.minutes ?? 0);
               }, 0);
+              const excusedCount = weekDays.filter((d) => {
+                const key = makeKey(student.id, d.date);
+                return attendance[key] === false && excusedData[key]?.excused === true;
+              }).length;
+              const totalHw = weekDays.reduce((sum, d) => {
+                const key = makeKey(student.id, d.date);
+                return sum + (hwData[key] ?? 0);
+              }, 0);
 
               return (
                 <tr
@@ -432,9 +623,15 @@ export default function AttendanceGrid({
                     const key = makeKey(student.id, day.date);
                     const isPresent = attendance[key] === true;
                     const isTogglingThis = toggling === key;
+                    
                     const late = lateData[key];
                     const isLate = isPresent && late?.minutes != null && late.minutes > 0;
                     const isPopupOpen = latePopup?.studentId === student.id && latePopup?.date === day.date;
+                    
+                    const exc = excusedData[key];
+                    const isExcused = !isPresent && exc?.excused === true;
+                    const isExcPopupOpen = excusedPopup?.studentId === student.id && excusedPopup?.date === day.date;
+                    const hwVal = hwData[key] ?? "";
 
                     return (
                       <td
@@ -449,8 +646,8 @@ export default function AttendanceGrid({
                           <button
                             onClick={() => toggle(student.id, day.date)}
                             disabled={isTogglingThis}
-                            className={`w-9 h-9 rounded-xl flex items-center justify-center mx-auto transition-all duration-150 ${getAttendanceBtnClass(isTogglingThis, isPresent, isLate)}`}
-                            title={isLate ? `${late?.minutes} дақ дер — ${late?.note || "сабаб нест"}` : undefined}
+                            className={`w-9 h-9 rounded-xl flex items-center justify-center mx-auto transition-all duration-150 ${getAttendanceBtnClass(isTogglingThis, isPresent, isLate, isExcused)}`}
+                            title={isLate ? `${late?.minutes} дақ дер — ${late?.note || "сабаб нест"}` : isExcused ? `Сабабнок: ${exc?.reason || "номаълум"}` : undefined}
                           >
                             {isPresent ? (
                               isLate ? (
@@ -465,10 +662,14 @@ export default function AttendanceGrid({
                                 />
                               )
                             ) : (
-                              <X
-                                size={14}
-                                className="text-gray-400 dark:text-slate-500"
-                              />
+                              isExcused ? (
+                                <Info size={16} className="text-white" strokeWidth={3} />
+                              ) : (
+                                <X
+                                  size={14}
+                                  className="text-gray-400 dark:text-slate-500"
+                                />
+                              )
                             )}
                           </button>
 
@@ -499,6 +700,46 @@ export default function AttendanceGrid({
                               onClose={() => setLatePopup(null)}
                             />
                           )}
+
+                          {/* Excused button - only show when absent */}
+                          {!isPresent && !isTogglingThis && (
+                            <button
+                              onClick={() => setExcusedPopup(isExcPopupOpen ? null : { studentId: student.id, date: day.date })}
+                              className={`w-6 h-4 rounded-md flex items-center justify-center transition-all text-[9px] font-medium ${
+                                isExcused
+                                  ? "bg-red-100 dark:bg-red-900/40 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-700"
+                                  : "bg-gray-50 dark:bg-slate-800 text-gray-400 dark:text-slate-500 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 border border-gray-200 dark:border-slate-700 hover:border-red-200 dark:hover:border-red-700"
+                              }`}
+                              title="Сабабнок қайд кунед"
+                            >
+                              <Info size={9} />
+                            </button>
+                          )}
+
+                          {/* Excused Popup */}
+                          {isExcPopupOpen && (
+                            <ExcusedPopup
+                              studentId={student.id}
+                              date={day.date}
+                              currentReason={exc?.reason ?? null}
+                              onSave={handleSaveExcused}
+                              onRemove={handleRemoveExcused}
+                              onClose={() => setExcusedPopup(null)}
+                            />
+                          )}
+
+                          {/* HW Input */}
+                          <div className="mt-1 flex items-center justify-center">
+                            <input
+                              type="number"
+                              min="0"
+                              placeholder="📝"
+                              value={hwVal}
+                              onChange={(e) => handleHwChange(student.id, day.date, e.target.value)}
+                              className="w-10 h-5 text-center text-[10px] font-bold rounded-md bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-gray-700 dark:text-slate-300 focus:outline-none focus:ring-1 focus:ring-purple-400 placeholder:text-[9px]"
+                              title="Шумораи масъалаҳои ҳалшуда"
+                            />
+                          </div>
                         </div>
                       </td>
                     );
@@ -516,6 +757,17 @@ export default function AttendanceGrid({
                       <p className="text-[10px] font-semibold text-amber-500 dark:text-amber-400 mt-0.5 flex items-center justify-center gap-0.5">
                         <Clock size={9} />
                         {totalLateMinutes} дақ
+                      </p>
+                    )}
+                    {excusedCount > 0 && (
+                      <p className="text-[10px] font-semibold text-red-500 dark:text-red-400 mt-0.5 flex items-center justify-center gap-0.5">
+                        <Info size={9} />
+                        {excusedCount} сабабнок
+                      </p>
+                    )}
+                    {totalHw > 0 && (
+                      <p className="text-[10px] font-semibold text-purple-500 dark:text-purple-400 mt-0.5 flex items-center justify-center gap-0.5">
+                        📝 {totalHw} масъала
                       </p>
                     )}
                   </td>

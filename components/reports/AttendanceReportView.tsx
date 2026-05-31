@@ -8,6 +8,8 @@ import {
   UserCheck,
   UserX,
   Clock,
+  Info,
+  BookOpen,
 } from "lucide-react";
 
 /* ─── Helpers ─── */
@@ -54,8 +56,10 @@ export default function AttendanceReportView({
     { label: "Ҷаласаҳо", value: s.totalSessions, icon: CalendarDays, accent: "text-slate-400", card: "bg-white border-slate-200" },
     { label: "Ҳузури миёна", value: `${s.avgRate}%`, icon: Percent, accent: avgTone.text, card: `${avgTone.soft} ${avgTone.border}`, valueClass: avgTone.text },
     { label: "Ҳозириҳо", value: s.present, icon: UserCheck, accent: "text-emerald-500", card: "bg-white border-slate-200", valueClass: "text-emerald-600" },
-    { label: "Ғоибиҳо", value: s.absent, icon: UserX, accent: "text-red-400", card: "bg-white border-slate-200", valueClass: "text-red-600" },
+    { label: "Ғоибиҳо", value: s.absent, icon: UserX, accent: "text-slate-400", card: "bg-white border-slate-200", valueClass: "text-slate-600" },
+    { label: "Сабабнок", value: s.excused, icon: Info, accent: "text-red-400", card: "bg-white border-slate-200", valueClass: "text-red-600" },
     { label: "Дер омадан", value: s.late, icon: Clock, accent: "text-amber-500", card: "bg-white border-slate-200", valueClass: "text-amber-600" },
+    { label: "Масъалаҳо", value: s.hwSolved, icon: BookOpen, accent: "text-purple-500", card: "bg-white border-slate-200", valueClass: "text-purple-600" },
   ];
 
   const th =
@@ -102,7 +106,7 @@ export default function AttendanceReportView({
       </section>
 
       {/* ─── Summary cards ─── */}
-      <section className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 print:grid-cols-6 gap-2.5 mt-6">
+      <section className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-4 print:grid-cols-4 gap-2.5 mt-6">
         {stats.map((stat) => (
           <div
             key={stat.label}
@@ -152,8 +156,10 @@ export default function AttendanceReportView({
                     <th className={`${th} text-center`}>Ҷаласа</th>
                     <th className={`${th} text-center`}>Ҳозир</th>
                     <th className={`${th} text-center`}>Ғоиб</th>
+                    <th className={`${th} text-center`}>Саб.</th>
                     <th className={`${th} text-center`}>Дер</th>
                     <th className={`${th} text-center`}>Дер, дақ</th>
+                    <th className={`${th} text-center`}>Масъала</th>
                     <th className={`${th} text-center`}>Ҳузур</th>
                   </tr>
                 </thead>
@@ -188,10 +194,17 @@ export default function AttendanceReportView({
                         </td>
                         <td
                           className={`px-3 py-2.5 text-center font-semibold border-b border-slate-100 ${
-                            row.absent > 0 ? "text-red-600" : "text-slate-300"
+                            row.absent > 0 ? "text-slate-600" : "text-slate-300"
                           }`}
                         >
                           {row.absent}
+                        </td>
+                        <td
+                          className={`px-3 py-2.5 text-center font-semibold border-b border-slate-100 ${
+                            row.excused > 0 ? "text-red-600" : "text-slate-300"
+                          }`}
+                        >
+                          {row.excused}
                         </td>
                         <td
                           className={`px-3 py-2.5 text-center font-semibold border-b border-slate-100 ${
@@ -208,6 +221,13 @@ export default function AttendanceReportView({
                           }`}
                         >
                           {row.lateMinutes > 0 ? row.lateMinutes : "—"}
+                        </td>
+                        <td
+                          className={`px-3 py-2.5 text-center font-semibold border-b border-slate-100 ${
+                            row.hwSolved > 0 ? "text-purple-600" : "text-slate-300"
+                          }`}
+                        >
+                          {row.hwSolved > 0 ? row.hwSolved : "—"}
                         </td>
                         <td className="px-3 py-2.5 border-b border-slate-100">
                           <div className="flex flex-col items-center gap-1">
@@ -241,14 +261,20 @@ export default function AttendanceReportView({
                       <td className="px-3 py-2.5 text-center text-emerald-700">
                         {s.present}
                       </td>
-                      <td className="px-3 py-2.5 text-center text-red-700">
+                      <td className="px-3 py-2.5 text-center text-slate-700">
                         {s.absent}
+                      </td>
+                      <td className="px-3 py-2.5 text-center text-red-700">
+                        {s.excused}
                       </td>
                       <td className="px-3 py-2.5 text-center text-amber-700">
                         {s.late}
                       </td>
                       <td className="px-3 py-2.5 text-center text-amber-700">
                         {s.lateMinutes > 0 ? s.lateMinutes : "—"}
+                      </td>
+                      <td className="px-3 py-2.5 text-center text-purple-700">
+                        {s.hwSolved > 0 ? s.hwSolved : "—"}
                       </td>
                       <td className={`px-3 py-2.5 text-center ${avgTone.text}`}>
                         {s.avgRate}%

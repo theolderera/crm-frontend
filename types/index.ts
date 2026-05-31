@@ -38,6 +38,9 @@ export interface Attendance {
   present: boolean;
   lateMinutes?: number | null;
   lateNote?: string | null;
+  excused?: boolean;
+  excusedReason?: string | null;
+  hwSolved?: number | null;
   createdAt: string;
 }
 
@@ -59,6 +62,8 @@ export interface StudentReportRow {
   absent: number;
   late: number;
   lateMinutes: number;
+  excused: number;
+  hwSolved: number;
   /** Attendance percentage, 0–100. */
   rate: number;
 }
@@ -78,6 +83,8 @@ export interface AttendanceReport {
     absent: number;
     late: number;
     lateMinutes: number;
+    excused: number;
+    hwSolved: number;
     avgRate: number;
   };
   students: StudentReportRow[];

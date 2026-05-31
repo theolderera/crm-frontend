@@ -27,7 +27,8 @@ export default function LoginPage() {
     e.preventDefault();
     setLoading(true);
     try {
-      const creds = mode === "phone" ? { phone, password } : { email, password };
+      const finalPhone = mode === "phone" && !phone.startsWith("+992") ? `+992${phone}` : phone;
+      const creds = mode === "phone" ? { phone: finalPhone, password } : { email, password };
       const { token, user } = await authApi.login(creds);
       login(token, user);
       toast.success(`Хуш омадед, ${user.firstName}!`);
@@ -65,22 +66,20 @@ export default function LoginPage() {
             <button
               type="button"
               onClick={() => setMode("phone")}
-              className={`flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-lg text-sm font-medium transition-all ${
-                mode === "phone"
-                  ? "bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 shadow-sm"
-                  : "text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-300"
-              }`}
+              className={`flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-lg text-sm font-medium transition-all ${mode === "phone"
+                ? "bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 shadow-sm"
+                : "text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-300"
+                }`}
             >
               <Phone size={15} /> Телефон
             </button>
             <button
               type="button"
               onClick={() => setMode("email")}
-              className={`flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-lg text-sm font-medium transition-all ${
-                mode === "email"
-                  ? "bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 shadow-sm"
-                  : "text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-300"
-              }`}
+              className={`flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-lg text-sm font-medium transition-all ${mode === "email"
+                ? "bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 shadow-sm"
+                : "text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-300"
+                }`}
             >
               <Mail size={15} /> Имейл
             </button>
@@ -92,16 +91,19 @@ export default function LoginPage() {
                 <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1.5">
                   Рақами телефон
                 </label>
-                <div className="relative">
-                  <Phone size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 dark:text-slate-500 pointer-events-none" />
+                <div className="flex w-full rounded-xl border border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-800 overflow-hidden focus-within:ring-2 focus-within:ring-indigo-500 focus-within:border-transparent transition">
+                  <div className="flex items-center justify-center px-3.5 bg-gray-100/50 dark:bg-slate-800/80 border-r border-gray-200 dark:border-slate-700">
+                    <Phone size={16} className="text-gray-400 dark:text-slate-500 mr-1.5" />
+                    <span className="text-sm font-medium text-gray-700 dark:text-slate-300">+992</span>
+                  </div>
                   <input
                     type="tel"
                     value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    placeholder="+992 XX XXX XXXX"
+                    onChange={(e) => setPhone(e.target.value.replace(/\D/g, '').slice(0, 9))}
+                    placeholder="XX XXX XXXX"
                     required
                     autoComplete="tel"
-                    className="w-full pl-10 pr-4 py-3 border border-gray-200 dark:border-slate-700 rounded-xl text-sm bg-gray-50 dark:bg-slate-800 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
+                    className="flex-1 w-full px-4 py-3 bg-transparent text-sm text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-slate-500 focus:outline-none"
                   />
                 </div>
               </div>
