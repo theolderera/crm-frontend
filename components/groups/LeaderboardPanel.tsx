@@ -45,7 +45,7 @@ export default function LeaderboardPanel({ groupId }: LeaderboardPanelProps) {
             (student.excused * 5) +
             (student.hwSolved * 5);
 
-          return { ...student, xp };
+          return { ...student, xp, rank: 0 };
         });
 
         // Sort by XP descending, then by name
