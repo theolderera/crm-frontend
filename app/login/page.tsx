@@ -56,8 +56,8 @@ export default function LoginPage() {
           <div className="inline-flex items-center justify-center mb-4">
             <Logo size={72} />
           </div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Student CRM</h1>
-          <p className="text-gray-500 dark:text-slate-400 mt-1 text-sm">Ба системаи худ дохил шавед</p>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Hozir CRM</h1>
+          <p className="text-sm text-gray-500 dark:text-slate-400 mt-2">Ба системаи назорати давомот хуш омадед</p>
         </div>
 
         <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-xl shadow-gray-100 dark:shadow-slate-900/50 border border-gray-100 dark:border-slate-800 p-6 sm:p-8">

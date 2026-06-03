@@ -114,6 +114,9 @@ export const reportsApi = {
     api
       .get('/reports/attendance/docx', { params, responseType: 'blob' })
       .then((r) => r.data as Blob),
+
+  getGlobalLeaderboard: (params?: { from?: string; to?: string }) =>
+    api.get<any[]>('/reports/global-leaderboard', { params }).then((r) => r.data),
 };
 
 export { api };

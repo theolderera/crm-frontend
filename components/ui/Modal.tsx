@@ -37,10 +37,10 @@ export default function Modal({ isOpen, onClose, title, children, size = 'md' }:
     >
       <div
         className={`
-          bg-white dark:bg-slate-900 w-full ${sizeClasses[size]} animate-modal
-          border border-gray-100 dark:border-slate-800 shadow-2xl dark:shadow-black/40
-          rounded-t-3xl sm:rounded-2xl
-          max-h-[92vh] flex flex-col
+          bg-white/95 dark:bg-slate-900/95 w-full ${sizeClasses[size]} animate-modal
+          border border-white/20 dark:border-slate-800/50 shadow-2xl shadow-indigo-900/10 dark:shadow-black/50
+          rounded-t-[32px] sm:rounded-3xl
+          max-h-[92vh] flex flex-col backdrop-blur-md
         `}
       >
         {/* Drag handle for mobile */}
@@ -48,11 +48,11 @@ export default function Modal({ isOpen, onClose, title, children, size = 'md' }:
           <div className="w-10 h-1 bg-gray-200 dark:bg-slate-700 rounded-full" />
         </div>
 
-        <div className="flex items-center justify-between px-5 sm:px-6 py-4 border-b border-gray-100 dark:border-slate-800">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-slate-50">{title}</h2>
+        <div className="flex items-center justify-between px-6 sm:px-8 py-5 border-b border-gray-100/50 dark:border-slate-800/50 bg-white/50 dark:bg-slate-900/50 rounded-t-[32px] sm:rounded-t-3xl">
+          <h2 className="text-xl font-bold text-gray-900 dark:text-white tracking-tight">{title}</h2>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800 active:bg-gray-200 transition-colors"
+            className="p-2 rounded-full bg-gray-100/50 dark:bg-slate-800 hover:bg-gray-200 dark:hover:bg-slate-700 active:bg-gray-300 dark:active:bg-slate-600 transition-colors"
           >
             <X size={18} className="text-gray-500 dark:text-slate-400" />
           </button>

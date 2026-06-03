@@ -15,6 +15,8 @@ import { formatStudentName, getStudentInitials } from "@/lib/formatters";
 import GroupCard from "@/components/groups/GroupCard";
 import GroupForm from "@/components/groups/GroupForm";
 import TeacherAssign from "@/components/groups/TeacherAssign";
+import LeaderboardPanel from "@/components/groups/LeaderboardPanel";
+import GlobalLeaderboardModal from "@/components/groups/GlobalLeaderboardModal";
 import StudentForm from "@/components/students/StudentForm";
 import AttendanceGrid from "@/components/attendance/AttendanceGrid";
 import WeekNavigator from "@/components/attendance/WeekNavigator";
@@ -35,6 +37,8 @@ import {
   Trash2,
   LogOut,
   FileText,
+  Trophy,
+  CalendarDays,
 } from "lucide-react";
 
 export default function ClientPage() {
@@ -53,6 +57,8 @@ export default function ClientPage() {
   const [deleteStudent, setDeleteStudent] = useState<Student | null>(null);
   const [deletingGroup, setDeletingGroup] = useState(false);
   const [deletingStudent, setDeletingStudent] = useState(false);
+  const [groupTab, setGroupTab] = useState<'attendance' | 'leaderboard'>('attendance');
+  const [globalLeaderboardOpen, setGlobalLeaderboardOpen] = useState(false);
 
   useEffect(() => {
     if (authLoading) return;
@@ -210,17 +216,15 @@ export default function ClientPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-slate-950 transition-colors duration-200">
+    <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-[#0B0F19] transition-colors duration-200 text-slate-900 dark:text-slate-100">
       {/* ─── Header ─── */}
-      <header className="bg-white dark:bg-slate-900 border-b border-gray-100 dark:border-slate-800 sticky top-0 z-40 shadow-sm dark:shadow-slate-900/50">
+      <header className="bg-white/80 dark:bg-[#0B0F19]/80 backdrop-blur-md border-b border-gray-200/50 dark:border-white/5 sticky top-0 z-40 shadow-sm dark:shadow-none">
         <div className="max-w-[1400px] mx-auto px-4 sm:px-6 h-14 sm:h-16 flex items-center justify-between gap-3">
           {/* Logo + title */}
           <div className="flex items-center gap-2.5 min-w-0">
-            <div className="w-8 h-8 sm:w-9 sm:h-9 bg-indigo-600 rounded-xl flex items-center justify-center shadow-md shadow-indigo-200 dark:shadow-indigo-900/50 flex-shrink-0 overflow-hidden">
-              <Logo size={24} variant="inverted" />
-            </div>
+            <Logo size={36} className="shadow-md dark:shadow-none" />
             <div className="min-w-0">
-              <h1 className="text-sm sm:text-base font-bold text-gray-900 dark:text-slate-50 leading-none">Student CRM</h1>
+              <h1 className="text-sm sm:text-base font-bold text-gray-900 dark:text-slate-50 leading-none">Hozir CRM</h1>
               <p className="text-[10px] sm:text-xs text-gray-400 dark:text-slate-500 leading-none mt-0.5 hidden sm:block">Системаи қайди ҳузур</p>
             </div>
           </div>
@@ -228,7 +232,7 @@ export default function ClientPage() {
           {/* Right side */}
           <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
             {/* Stats - desktop only */}
-            <div className="hidden md:flex items-center gap-3 text-xs text-gray-500 dark:text-slate-400 bg-gray-50 dark:bg-slate-800 rounded-xl px-3 py-2 border border-gray-100 dark:border-slate-700">
+            <div className="hidden md:flex items-center gap-3 text-xs text-slate-500 dark:text-slate-400 bg-white/50 dark:bg-slate-800 rounded-xl px-3 py-2 border border-slate-200/50 dark:border-slate-700">
               <span className="flex items-center gap-1.5">
                 <Users size={13} className="text-indigo-500 dark:text-indigo-400" />
                 <strong className="text-gray-800 dark:text-slate-200">{groups.length}</strong> гурӯҳ
@@ -251,7 +255,7 @@ export default function ClientPage() {
 
             <button
               onClick={handleLogout}
-              className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 text-xs font-medium text-gray-600 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-800 active:bg-gray-200 rounded-xl transition-colors border border-gray-200 dark:border-slate-700"
+              className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 text-xs font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 active:bg-slate-200 rounded-xl transition-colors border border-slate-200/50 dark:border-slate-700"
             >
               <LogOut size={14} />
               <span className="hidden sm:inline">Баромад</span>
@@ -284,6 +288,12 @@ export default function ClientPage() {
                   </button>
                 </>
               )}
+              <button
+                onClick={() => setGlobalLeaderboardOpen(true)}
+                className="flex items-center gap-1 px-2.5 py-1.5 bg-gradient-to-r from-amber-500 to-orange-500 text-white text-xs font-bold rounded-lg hover:from-amber-600 hover:to-orange-600 shadow-sm transition-all"
+              >
+                <Trophy size={13} /> Рейтинги Умумӣ
+              </button>
               {isMentor && (
                 <button
                   onClick={() => setGroupModal({ open: true })}
@@ -305,8 +315,8 @@ export default function ClientPage() {
                   onClick={() => setSelectedGroup(group)}
                   className={`flex-shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium transition-all border-2 ${
                     selectedGroup?.id === group.id
-                      ? "bg-indigo-600 border-indigo-600 text-white shadow-md shadow-indigo-200 dark:shadow-indigo-900/40"
-                      : "bg-white dark:bg-slate-900 border-gray-100 dark:border-slate-800 text-gray-700 dark:text-slate-300"
+                      ? "bg-indigo-600 border-indigo-600 text-white shadow-lg shadow-indigo-600/30"
+                      : "bg-white/80 dark:bg-white/5 border-slate-200/50 dark:border-white/5 text-slate-700 dark:text-slate-300 hover:bg-white hover:dark:bg-white/10"
                   }`}
                 >
                   <Users size={13} className={selectedGroup?.id === group.id ? "text-indigo-200" : "text-indigo-400"} />
@@ -314,7 +324,7 @@ export default function ClientPage() {
                   <span className={`text-xs font-bold px-1.5 py-0.5 rounded-full ${
                     selectedGroup?.id === group.id
                       ? "bg-indigo-500 text-indigo-100"
-                      : "bg-gray-100 dark:bg-slate-800 text-gray-500 dark:text-slate-400"
+                      : "bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400"
                   }`}>
                     {group.students?.length ?? 0}
                   </span>
@@ -328,8 +338,14 @@ export default function ClientPage() {
         <div className="flex gap-6">
           {/* Desktop sidebar */}
           <aside className="hidden lg:flex w-64 flex-shrink-0 flex-col gap-3">
+            <button
+              onClick={() => setGlobalLeaderboardOpen(true)}
+              className="flex items-center justify-center gap-2 w-full py-2.5 mb-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white text-sm font-bold rounded-xl hover:from-amber-600 hover:to-orange-600 shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all"
+            >
+              <Trophy size={16} /> Рейтинги Умумии Марказ
+            </button>
             <div className="flex items-center justify-between">
-              <h2 className="text-xs font-bold text-gray-500 dark:text-slate-400 uppercase tracking-wider">Гурӯҳҳо</h2>
+              <h2 className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Гурӯҳҳо</h2>
               {isMentor && (
                 <button
                   onClick={() => setGroupModal({ open: true })}
@@ -362,8 +378,8 @@ export default function ClientPage() {
             {selectedGroup ? (
               <>
                 {/* Group header card */}
-                <div className="bg-white dark:bg-slate-900 rounded-2xl border border-gray-100 dark:border-slate-800 p-4 shadow-sm">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="bg-white/80 dark:bg-white/5 backdrop-blur-sm rounded-2xl border border-slate-200/50 dark:border-white/10 p-5 shadow-sm shadow-slate-200/50 dark:shadow-none">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div className="min-w-0">
                       <h2 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-slate-50 truncate">{selectedGroup.name}</h2>
                       {selectedGroup.description && (
@@ -400,73 +416,100 @@ export default function ClientPage() {
                     </div>
                   </div>
                 </div>
-
-                {/* Attendance grid */}
-                <div className="bg-white dark:bg-slate-900 rounded-2xl border border-gray-100 dark:border-slate-800 shadow-sm overflow-hidden">
-                  <div className="px-4 py-3 border-b border-gray-50 dark:border-slate-800 flex items-center justify-between">
-                    <h3 className="text-sm font-semibold text-gray-700 dark:text-slate-300">Рӯйхати ҳузур</h3>
-                    <div className="flex items-center gap-2">
-                      <span className="flex items-center gap-1.5 text-xs text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/30 px-2 py-1 rounded-lg font-medium border border-green-100 dark:border-green-800/50">
-                        <span className="w-1.5 h-1.5 bg-green-500 rounded-full" /> Ҳозир
-                      </span>
-                      <span className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-slate-400 bg-gray-100 dark:bg-slate-800 px-2 py-1 rounded-lg font-medium">
-                        <span className="w-1.5 h-1.5 bg-gray-300 dark:bg-slate-600 rounded-full" /> Набуд
-                      </span>
-                    </div>
-                  </div>
-                  <div className="overflow-auto">
-                    <AttendanceGrid students={students} weekDays={weekDays} groupId={selectedGroup.id} readOnly={isTeacher} />
-                  </div>
-
-                  {/* Student management */}
-                  {students.length > 0 && isMentor && (
-                    <div className="border-t border-gray-50 dark:border-slate-800 px-4 py-3">
-                      <p className="text-xs font-semibold text-gray-400 dark:text-slate-500 uppercase tracking-wider mb-2">
-                        Идоракунии талабагон
-                      </p>
-                      <div className="flex flex-wrap gap-2">
-                        {students.map((student) => (
-                          <div
-                            key={student.id}
-                            className="flex items-center gap-2 bg-gray-50 dark:bg-slate-800 rounded-xl px-3 py-1.5 border border-gray-100 dark:border-slate-700 hover:border-indigo-200 dark:hover:border-indigo-600 transition-colors group"
-                          >
-                            <div className="w-6 h-6 rounded-full bg-indigo-100 dark:bg-indigo-900/50 flex items-center justify-center text-xs font-bold text-indigo-700 dark:text-indigo-300 flex-shrink-0">
-                              {getStudentInitials(student)}
-                            </div>
-                            <span className="text-sm text-gray-700 dark:text-slate-300 font-medium">
-                              {formatStudentName(student)}
-                            </span>
-                            {/* Always visible on mobile, hover on desktop */}
-                            <div className="flex gap-1 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
-                              <button
-                                onClick={() => setStudentModal({ open: true, editing: student })}
-                                className="p-1 text-gray-400 dark:text-slate-500 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors rounded"
-                                aria-label="Таҳрир"
-                              >
-                                <Edit2 size={12} />
-                              </button>
-                              <button
-                                onClick={() => setDeleteStudent(student)}
-                                className="p-1 text-gray-400 dark:text-slate-500 hover:text-red-500 dark:hover:text-red-400 transition-colors rounded"
-                                aria-label="Ҳазф"
-                              >
-                                <Trash2 size={12} />
-                              </button>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
+                {/* Tabs */}
+                <div className="flex flex-wrap items-center gap-2 mb-2 border-b border-gray-100 dark:border-slate-800 pb-0">
+                  <button
+                    onClick={() => setGroupTab('attendance')}
+                    className={`flex items-center gap-1.5 px-4 py-2 text-sm font-bold border-b-2 transition-colors ${
+                      groupTab === 'attendance'
+                        ? 'border-indigo-600 text-indigo-600 dark:border-indigo-400 dark:text-indigo-400'
+                        : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'
+                    }`}
+                  >
+                    <CalendarDays size={16} />
+                    Рӯйхати ҳузур
+                  </button>
+                  <button
+                    onClick={() => setGroupTab('leaderboard')}
+                    className={`flex items-center gap-1.5 px-4 py-2 text-sm font-bold border-b-2 transition-colors ${
+                      groupTab === 'leaderboard'
+                        ? 'border-indigo-600 text-indigo-600 dark:border-indigo-400 dark:text-indigo-400'
+                        : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'
+                    }`}
+                  >
+                    <Trophy size={16} />
+                    Рейтинги донишҷӯён
+                  </button>
                 </div>
 
+                {groupTab === 'attendance' ? (
+                  <div className="bg-white/80 dark:bg-[#131B2F] backdrop-blur-md rounded-2xl border border-slate-200/50 dark:border-white/5 shadow-xl shadow-slate-200/40 dark:shadow-black/20 overflow-hidden">
+                    <div className="px-5 py-4 border-b border-slate-100/80 dark:border-white/5 flex flex-wrap gap-2 items-center justify-between">
+                      <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200 tracking-wide uppercase">Рӯйхати ҳузур</h3>
+                      <div className="flex items-center gap-2">
+                        <span className="flex items-center gap-1.5 text-xs text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/30 px-2 py-1 rounded-lg font-medium border border-green-100 dark:border-green-800/50">
+                          <span className="w-1.5 h-1.5 bg-green-500 rounded-full" /> Ҳозир
+                        </span>
+                        <span className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-slate-400 bg-gray-100 dark:bg-slate-800 px-2 py-1 rounded-lg font-medium">
+                          <span className="w-1.5 h-1.5 bg-gray-300 dark:bg-slate-600 rounded-full" /> Набуд
+                        </span>
+                      </div>
+                    </div>
+                    <div className="overflow-auto">
+                      <AttendanceGrid students={students} weekDays={weekDays} groupId={selectedGroup.id} readOnly={isTeacher} />
+                    </div>
+
+                    {/* Student management */}
+                    {students.length > 0 && isMentor && (
+                      <div className="border-t border-gray-50 dark:border-slate-800 px-4 py-3">
+                        <p className="text-xs font-semibold text-gray-400 dark:text-slate-500 uppercase tracking-wider mb-2">
+                          Идоракунии талабагон
+                        </p>
+                        <div className="flex flex-wrap gap-2">
+                          {students.map((student) => (
+                            <div
+                              key={student.id}
+                              className="flex items-center gap-2 bg-gray-50 dark:bg-slate-800 rounded-xl px-3 py-1.5 border border-gray-100 dark:border-slate-700 hover:border-indigo-200 dark:hover:border-indigo-600 transition-colors group"
+                            >
+                              <div className="w-6 h-6 rounded-full bg-indigo-100 dark:bg-indigo-900/50 flex items-center justify-center text-xs font-bold text-indigo-700 dark:text-indigo-300 flex-shrink-0">
+                                {getStudentInitials(student)}
+                              </div>
+                              <span className="text-sm text-gray-700 dark:text-slate-300 font-medium">
+                                {formatStudentName(student)}
+                              </span>
+                              <div className="flex gap-1 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
+                                <button
+                                  onClick={() => setStudentModal({ open: true, editing: student })}
+                                  className="p-1 text-gray-400 dark:text-slate-500 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors rounded"
+                                  aria-label="Таҳрир"
+                                >
+                                  <Edit2 size={12} />
+                                </button>
+                                <button
+                                  onClick={() => setDeleteStudent(student)}
+                                  className="p-1 text-gray-400 dark:text-slate-500 hover:text-red-500 dark:hover:text-red-400 transition-colors rounded"
+                                  aria-label="Ҳазф"
+                                >
+                                  <Trash2 size={12} />
+                                </button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <LeaderboardPanel groupId={selectedGroup.id} />
+                )}
+
                 {isMentor && (
-                  <TeacherAssign 
-                    group={selectedGroup} 
+                  <TeacherAssign
+                    group={selectedGroup}
                     onAssigned={(g) => {
-                      setGroups(prev => prev.map(gr => gr.id === g.id ? {...gr, teacher: g.teacher, teacherId: g.teacherId, teacher2: g.teacher2, teacher2Id: g.teacher2Id} : gr));
-                      setSelectedGroup(prev => prev?.id === g.id ? {...prev, teacher: g.teacher, teacherId: g.teacherId, teacher2: g.teacher2, teacher2Id: g.teacher2Id} : prev);
-                    }} 
+                      setGroups(prev => prev.map(gr => gr.id === g.id ? { ...gr, teacher: g.teacher, teacherId: g.teacherId, teacher2: g.teacher2, teacher2Id: g.teacher2Id } : gr));
+                      setSelectedGroup(prev => prev?.id === g.id ? { ...prev, teacher: g.teacher, teacherId: g.teacherId, teacher2: g.teacher2, teacher2Id: g.teacher2Id } : prev);
+                    }}
                   />
                 )}
               </>
@@ -523,6 +566,11 @@ export default function ClientPage() {
         title="Талабаро ҳазф кардан"
         message={`Оё мутмаин ҳастед, ки ${deleteStudent ? formatStudentName(deleteStudent) : ""}-ро ҳазф мекунед?`}
         loading={deletingStudent}
+      />
+
+      <GlobalLeaderboardModal
+        isOpen={globalLeaderboardOpen}
+        onClose={() => setGlobalLeaderboardOpen(false)}
       />
 
       <AIChatWidget

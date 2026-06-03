@@ -19,8 +19,8 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: "Student CRM — Системаи идораи донишҷӯён",
-    template: "%s | Student CRM",
+    default: "Hozir CRM — Системаи идораи донишҷӯён ва давомот",
+    template: "%s | Hozir CRM",
   },
   description:
     "Системаи пешрафтаи қайди ҳузур ва идораи гурӯҳҳо барои муаллимон ва менторон. Нигоҳ доштани рекорди ҳузур, идораи гурӯҳҳо ва талабагон бо осонӣ.",
@@ -29,10 +29,10 @@ export const metadata: Metadata = {
     "гурӯҳ", "ментор", "системаи идоракунӣ", "student management",
     "attendance tracking", "CRM Тоҷикистон",
   ],
-  authors: [{ name: "Student CRM Team" }],
-  creator: "Student CRM",
-  publisher: "Student CRM",
-  applicationName: "Student CRM",
+  authors: [{ name: "Hozir Team" }],
+  creator: "Hozir CRM",
+  publisher: "Hozir CRM",
+  applicationName: "Hozir CRM",
   generator: "Next.js",
   referrer: "origin-when-cross-origin",
   robots: {
@@ -56,24 +56,24 @@ export const metadata: Metadata = {
     type: "website",
     locale: "tg_TJ",
     url: siteUrl,
-    siteName: "Student CRM",
-    title: "Student CRM — Системаи идораи донишҷӯён",
+    siteName: "Hozir CRM",
+    title: "Hozir CRM — Системаи идораи донишҷӯён ва давомот",
     description:
-      "Системаи пешрафтаи қайди ҳузур ва идораи гурӯҳҳо барои муаллимон ва менторон.",
+      "Дар системаи Hozir CRM гурӯҳҳо, давомот ва рейтингҳоро осон назорат кунед.",
     images: [
       {
         url: "/opengraph-image",
         width: 1200,
         height: 630,
-        alt: "Student CRM — Системаи идораи донишҷӯён",
+        alt: "Hozir CRM — Системаи идораи донишҷӯён ва давомот",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Student CRM — Системаи идораи донишҷӯён",
+    title: "Hozir CRM — Системаи идораи донишҷӯён ва давомот",
     description:
-      "Системаи пешрафтаи қайди ҳузур ва идораи гурӯҳҳо барои муаллимон ва менторон.",
+      "Дар системаи Hozir CRM гурӯҳҳо ва давомотро осон назорат кунед.",
     images: ["/opengraph-image"],
   },
   alternates: {
@@ -85,7 +85,7 @@ export const metadata: Metadata = {
 const jsonLd = {
   "@context": "https://schema.org",
   "@type": "WebApplication",
-  name: "Student CRM",
+  name: "Hozir CRM",
   description:
     "Системаи пешрафтаи қайди ҳузур ва идораи гурӯҳҳо барои муаллимон ва менторон",
   url: siteUrl,
@@ -96,7 +96,7 @@ const jsonLd = {
   browserRequirements: "JavaScript",
   author: {
     "@type": "Organization",
-    name: "Student CRM",
+    name: "Hozir Team",
   },
 };
 

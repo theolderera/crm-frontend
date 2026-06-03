@@ -4,7 +4,7 @@ import React, { useState, useEffect, useCallback, useRef } from "react";
 import { Student, WeekDay } from "@/types";
 import { attendanceApi } from "@/lib/api";
 import { getStudentInitials, formatStudentName } from "@/lib/formatters";
-import { Check, X, Clock, Info } from "lucide-react";
+import { Check, X, Clock, Info, BookOpen } from "lucide-react";
 import Spinner from "@/components/ui/Spinner";
 import toast from "react-hot-toast";
 
@@ -30,14 +30,14 @@ function getAttendanceBtnClass(
   isLate: boolean,
   isExcused: boolean,
 ): string {
-  if (isToggling) return "opacity-50 cursor-wait bg-gray-100 dark:bg-slate-800";
+  if (isToggling) return "opacity-50 cursor-wait bg-slate-100 dark:bg-slate-800 rounded-full";
   if (isPresent && isLate)
-    return "bg-amber-400 hover:bg-amber-500 shadow-sm shadow-amber-200 dark:shadow-amber-900/30";
+    return "bg-gradient-to-br from-amber-400 to-amber-500 hover:from-amber-500 hover:to-amber-600 shadow-md shadow-amber-500/30 dark:shadow-amber-900/40 border-none rounded-full";
   if (isPresent)
-    return "bg-green-500 hover:bg-green-600 shadow-sm shadow-green-200 dark:shadow-green-900/30";
+    return "bg-gradient-to-br from-emerald-400 to-emerald-500 hover:from-emerald-500 hover:to-emerald-600 shadow-md shadow-emerald-500/30 dark:shadow-emerald-900/40 border-none rounded-full text-white";
   if (isExcused)
-    return "bg-red-500 hover:bg-red-600 shadow-sm shadow-red-200 dark:shadow-red-900/30";
-  return "bg-gray-100 dark:bg-slate-800 hover:bg-red-50 dark:hover:bg-red-900/20 border border-gray-200 dark:border-slate-700 hover:border-red-200 dark:hover:border-red-800";
+    return "bg-gradient-to-br from-rose-400 to-rose-500 hover:from-rose-500 hover:to-rose-600 shadow-md shadow-rose-500/30 dark:shadow-rose-900/40 border-none rounded-full text-white";
+  return "bg-slate-100/50 dark:bg-white/5 hover:bg-slate-200/50 dark:hover:bg-white/10 border border-slate-200 dark:border-white/10 rounded-full transition-all";
 }
 
 function getPercentageColor(pct: number): string {
@@ -118,11 +118,10 @@ function LatePopup({ studentId, date, currentMinutes, currentNote, onSave, onRem
             <button
               key={m}
               onClick={() => setMinutes(m)}
-              className={`flex-1 py-1.5 text-xs font-medium rounded-lg transition-colors ${
-                minutes === m
+              className={`flex-1 py-1.5 text-xs font-medium rounded-lg transition-colors ${minutes === m
                   ? "bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300 border border-amber-300 dark:border-amber-700"
                   : "bg-gray-50 dark:bg-slate-700 text-gray-600 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-600 border border-gray-200 dark:border-slate-600"
-              }`}
+                }`}
             >
               {m}&apos;
             </button>
@@ -417,7 +416,7 @@ export default function AttendanceGrid({
     const key = makeKey(studentId, date);
     const parsed = val === "" ? null : parseInt(val, 10);
     const hwSolved = parsed !== null && !isNaN(parsed) ? Math.max(0, parsed) : null;
-    
+
     const prevHw = hwData[key] ?? null;
     setHwData((prev) => ({ ...prev, [key]: hwSolved }));
 
@@ -474,13 +473,7 @@ export default function AttendanceGrid({
     return { present, absent: students.length - present - excusedCount, late: lateCount, excused: excusedCount, hw: hwTotal };
   };
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-48">
-        <Spinner size="lg" />
-      </div>
-    );
-  }
+  const isDataLoading = loading && Object.keys(attendance).length === 0;
 
   if (!students.length) {
     return (
@@ -491,11 +484,16 @@ export default function AttendanceGrid({
   }
 
   return (
-    <div className="overflow-x-auto">
-      <table className="w-full">
+    <div className={`overflow-x-auto transition-opacity duration-300 relative ${loading ? 'opacity-60 pointer-events-none' : ''}`}>
+      {loading && (
+        <div className="absolute top-0 left-0 w-full h-1 bg-gray-100 overflow-hidden z-50">
+          <div className="h-full bg-indigo-500 animate-pulse" style={{ width: '100%', animation: 'progress 1s ease-in-out infinite' }} />
+        </div>
+      )}
+      <table className="w-full border-collapse">
         <thead>
           <tr>
-            <th className="text-left py-3 px-4 text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider bg-gray-50 dark:bg-slate-800/50 rounded-tl-xl min-w-[180px] sticky left-0">
+            <th className="text-left py-4 px-5 text-xs font-bold text-slate-500 dark:text-indigo-200 uppercase tracking-wider bg-slate-50/80 dark:bg-indigo-950/40 rounded-tl-2xl min-w-[180px] sticky left-0 border-b border-slate-200/80 dark:border-indigo-900/30 z-10">
               Талаба
             </th>
             {weekDays.map((day) => {
@@ -503,19 +501,17 @@ export default function AttendanceGrid({
               return (
                 <th
                   key={day.date}
-                  className={`py-3 px-2 text-center min-w-[80px] ${
-                    day.isToday
-                      ? "bg-indigo-50 dark:bg-indigo-900/20"
-                      : "bg-gray-50 dark:bg-slate-800/50"
-                  }`}
+                  className={`py-4 px-2 text-center min-w-[80px] border-b border-slate-200/80 dark:border-indigo-900/30 ${day.isToday
+                      ? "bg-indigo-50 dark:bg-indigo-900/40"
+                      : "bg-slate-50/80 dark:bg-indigo-950/40"
+                    }`}
                 >
                   <div className="flex flex-col items-center gap-1">
                     <span
-                      className={`text-xs font-bold uppercase tracking-wide ${
-                        day.isToday
+                      className={`text-xs font-bold uppercase tracking-wide ${day.isToday
                           ? "text-indigo-600 dark:text-indigo-400"
                           : "text-gray-500 dark:text-slate-400"
-                      }`}
+                        }`}
                     >
                       {day.label}
                     </span>
@@ -524,27 +520,27 @@ export default function AttendanceGrid({
                         Имрӯз
                       </span>
                     )}
-                    <div className="flex gap-1 mt-0.5">
-                      <span className="text-[10px] text-green-600 dark:text-green-400 font-medium">
-                        {stats.present}✓
+                    <div className="flex gap-1.5 mt-0.5">
+                      <span className="text-[10px] text-green-600 dark:text-green-400 font-medium flex items-center gap-0.5">
+                        {stats.present}<Check size={10} />
                       </span>
                       {stats.late > 0 && (
-                        <span className="text-[10px] text-amber-500 dark:text-amber-400 font-medium">
-                          {stats.late}⏱
+                        <span className="text-[10px] text-amber-500 dark:text-amber-400 font-medium flex items-center gap-0.5">
+                          {stats.late}<Clock size={10} />
                         </span>
                       )}
                       {stats.excused > 0 && (
-                        <span className="text-[10px] text-red-500 dark:text-red-400 font-medium">
-                          {stats.excused}ℹ️
+                        <span className="text-[10px] text-red-500 dark:text-red-400 font-medium flex items-center gap-0.5">
+                          {stats.excused}<Info size={10} />
                         </span>
                       )}
                       {stats.hw > 0 && (
-                        <span className="text-[10px] text-purple-500 dark:text-purple-400 font-medium">
-                          {stats.hw}📝
+                        <span className="text-[10px] text-purple-500 dark:text-purple-400 font-medium flex items-center gap-0.5">
+                          {stats.hw}<BookOpen size={10} />
                         </span>
                       )}
-                      <span className="text-[10px] text-red-400 dark:text-red-500 font-medium">
-                        {stats.absent}✗
+                      <span className="text-[10px] text-red-400 dark:text-red-500 font-medium flex items-center gap-0.5">
+                        {stats.absent}<X size={10} />
                       </span>
                     </div>
                     {!readOnly && (
@@ -559,12 +555,12 @@ export default function AttendanceGrid({
                 </th>
               );
             })}
-            <th className="py-3 px-3 text-center text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider bg-gray-50 dark:bg-slate-800/50 rounded-tr-xl min-w-[90px]">
+            <th className="py-4 px-3 text-center text-xs font-bold text-slate-500 dark:text-indigo-200 uppercase tracking-wider bg-slate-50/80 dark:bg-indigo-950/40 rounded-tr-2xl min-w-[90px] border-b border-slate-200/80 dark:border-indigo-900/30 z-10">
               Хулоса
             </th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-gray-50 dark:divide-slate-800">
+        <tbody className="divide-y divide-slate-100/80 dark:divide-white/5">
           {[...students]
             .sort((a, b) => {
               const today = weekDays.find((d) => d.isToday);
@@ -598,11 +594,8 @@ export default function AttendanceGrid({
               return (
                 <tr
                   key={student.id}
-                  className={`hover:bg-indigo-50/30 dark:hover:bg-indigo-900/10 transition-colors ${
-                    idx % 2 === 0
-                      ? "bg-white dark:bg-slate-900"
-                      : "bg-gray-50/50 dark:bg-slate-800/30"
-                  }`}
+                  className={`hover:bg-indigo-50/50 dark:hover:bg-white/5 transition-colors ${idx % 2 === 0 ? "bg-transparent" : "bg-slate-50/30 dark:bg-white/[0.02]"
+                    }`}
                 >
                   <td className="py-3 px-4 sticky left-0 bg-inherit">
                     <div className="flex items-center gap-2.5">
@@ -625,24 +618,23 @@ export default function AttendanceGrid({
                     const key = makeKey(student.id, day.date);
                     const isPresent = attendance[key] === true;
                     const isTogglingThis = toggling === key;
-                    
+
                     const late = lateData[key];
                     const isLate = isPresent && late?.minutes != null && late.minutes > 0;
                     const isPopupOpen = latePopup?.studentId === student.id && latePopup?.date === day.date;
-                    
+
                     const exc = excusedData[key];
                     const isExcused = !isPresent && exc?.excused === true;
                     const isExcPopupOpen = excusedPopup?.studentId === student.id && excusedPopup?.date === day.date;
-                    const hwVal = hwData[key] ?? "";
+                    const hwVal = hwData[key] ?? 0;
 
                     return (
                       <td
                         key={day.date}
-                        className={`py-3 px-2 text-center ${
-                          day.isToday
+                        className={`py-3 px-2 text-center ${day.isToday
                             ? "bg-indigo-50/40 dark:bg-indigo-900/10"
                             : ""
-                        }`}
+                          }`}
                       >
                         <div className="relative inline-flex flex-col items-center gap-1">
                           <button
@@ -678,11 +670,10 @@ export default function AttendanceGrid({
                           {isPresent && !isTogglingThis && !readOnly && (
                             <button
                               onClick={() => setLatePopup(isPopupOpen ? null : { studentId: student.id, date: day.date })}
-                              className={`w-6 h-4 rounded-md flex items-center justify-center transition-all text-[9px] font-medium ${
-                                isLate
+                              className={`w-6 h-4 rounded-md flex items-center justify-center transition-all text-[9px] font-medium ${isLate
                                   ? "bg-amber-100 dark:bg-amber-900/40 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-700"
                                   : "bg-gray-50 dark:bg-slate-800 text-gray-400 dark:text-slate-500 hover:text-amber-500 dark:hover:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-900/20 border border-gray-200 dark:border-slate-700 hover:border-amber-200 dark:hover:border-amber-700"
-                              }`}
+                                }`}
                               title="Дер омадан қайд кунед"
                             >
                               <Clock size={9} />
@@ -704,11 +695,10 @@ export default function AttendanceGrid({
                           {!isPresent && !isTogglingThis && !readOnly && (
                             <button
                               onClick={() => setExcusedPopup(isExcPopupOpen ? null : { studentId: student.id, date: day.date })}
-                              className={`w-6 h-4 rounded-md flex items-center justify-center transition-all text-[9px] font-medium ${
-                                isExcused
+                              className={`w-6 h-4 rounded-md flex items-center justify-center transition-all text-[9px] font-medium ${isExcused
                                   ? "bg-red-100 dark:bg-red-900/40 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-700"
                                   : "bg-gray-50 dark:bg-slate-800 text-gray-400 dark:text-slate-500 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 border border-gray-200 dark:border-slate-700 hover:border-red-200 dark:hover:border-red-700"
-                              }`}
+                                }`}
                               title="Сабабнок қайд кунед"
                             >
                               <Info size={9} />
@@ -732,7 +722,7 @@ export default function AttendanceGrid({
                             <input
                               type="number"
                               min="0"
-                              placeholder="📝"
+                              placeholder="0"
                               value={hwVal}
                               disabled={readOnly}
                               onChange={(e) => handleHwChange(student.id, day.date, e.target.value)}
@@ -765,11 +755,10 @@ export default function AttendanceGrid({
                         {excusedCount} сабабнок
                       </p>
                     )}
-                    {totalHw > 0 && (
-                      <p className="text-[10px] font-semibold text-purple-500 dark:text-purple-400 mt-0.5 flex items-center justify-center gap-0.5">
-                        📝 {totalHw} масъала
-                      </p>
-                    )}
+                    <p className="text-[10px] font-semibold text-purple-500 dark:text-purple-400 mt-0.5 flex items-center justify-center gap-0.5">
+                      <BookOpen size={9} />
+                      {totalHw} масъала
+                    </p>
                   </td>
                 </tr>
               );

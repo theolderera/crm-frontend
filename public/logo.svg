@@ -1,4 +1,25 @@
-<svg viewBox="0 0 110 100" xmlns="http://www.w3.org/2000/svg">
-  <path transform="translate(20 14)" d="M0 0 H80 V48 H16 V64 H80 V80 H0 V32 H64 V16 H0 Z" fill="#93C5FD" />
-  <path transform="translate(8 6)"  d="M0 0 H80 V48 H16 V64 H80 V80 H0 V32 H64 V16 H0 Z" fill="#1E40AF" />
+<svg 
+  viewBox="0 0 48 48" 
+  fill="none" 
+  xmlns="http://www.w3.org/2000/svg"
+>
+  <style>
+    .cap { fill: #4F46E5; stroke: #4F46E5; }
+    .bg { fill: #ffffff; stroke: #ffffff; }
+    @media (prefers-color-scheme: dark) {
+      .cap { fill: #ffffff; stroke: #ffffff; }
+      .bg { fill: #0B0F19; stroke: #0B0F19; }
+    }
+  </style>
+  
+  <!-- Graduation Cap Base -->
+  <path class="cap" d="M4 20L24 10L44 20L24 30L4 20Z" fill-opacity="0.15" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <path class="cap" d="M12 24V32C12 32 17 37 24 37C31 37 36 32 36 32V24" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <path class="cap" d="M44 20V30" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+  
+  <!-- Checkmark Badge Base -->
+  <circle class="bg" cx="34" cy="34" r="12" />
+  <!-- Green Check -->
+  <circle cx="34" cy="34" r="10" fill="#10B981" />
+  <path class="bg" d="M29 34.5L32.5 38L39 30.5" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
 </svg>
