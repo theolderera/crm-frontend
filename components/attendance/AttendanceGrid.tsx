@@ -30,14 +30,47 @@ function getAttendanceBtnClass(
   isLate: boolean,
   isExcused: boolean,
 ): string {
-  if (isToggling) return "opacity-50 cursor-wait bg-slate-100 dark:bg-slate-800 rounded-full";
-  if (isPresent && isLate)
-    return "bg-gradient-to-br from-amber-400 to-amber-500 hover:from-amber-500 hover:to-amber-600 shadow-md shadow-amber-500/30 dark:shadow-amber-900/40 border-none rounded-full";
+  if (isToggling) return "opacity-50 cursor-wait bg-slate-100 dark:bg-slate-800 rounded-xl";
   if (isPresent)
-    return "bg-gradient-to-br from-emerald-400 to-emerald-500 hover:from-emerald-500 hover:to-emerald-600 shadow-md shadow-emerald-500/30 dark:shadow-emerald-900/40 border-none rounded-full text-white";
+    return "rounded-xl border-none text-white hover:scale-105 active:scale-95 transition-all shadow-md";
   if (isExcused)
-    return "bg-gradient-to-br from-rose-400 to-rose-500 hover:from-rose-500 hover:to-rose-600 shadow-md shadow-rose-500/30 dark:shadow-rose-900/40 border-none rounded-full text-white";
-  return "bg-slate-100/50 dark:bg-white/5 hover:bg-slate-200/50 dark:hover:bg-white/10 border border-slate-200 dark:border-white/10 rounded-full transition-all";
+    return "bg-gradient-to-br from-rose-400 to-rose-500 hover:from-rose-500 hover:to-rose-600 shadow-md shadow-rose-500/30 dark:shadow-rose-900/40 border-none rounded-xl text-white hover:scale-105 active:scale-95 transition-all";
+  return "bg-slate-100/50 dark:bg-white/5 hover:bg-slate-200/50 dark:hover:bg-white/10 border border-slate-200 dark:border-white/10 rounded-xl transition-all";
+}
+
+function getAttendanceBtnStyle(isPresent: boolean, lateMinutes: number): React.CSSProperties | undefined {
+  if (!isPresent) return undefined;
+  
+  // 120 hue = Green (On time), 0 hue = Red (120 min late)
+  const hue = Math.max(0, 120 - Math.min(120, lateMinutes));
+  const isLate = lateMinutes > 0;
+  const light1 = isLate ? 50 : 45;
+  const light2 = isLate ? 45 : 40;
+  
+  return {
+    background: `linear-gradient(135deg, hsl(${hue}, 85%, ${light1}%), hsl(${Math.max(0, hue - 10)}, 90%, ${light2}%))`,
+    boxShadow: `0 4px 12px -2px hsla(${hue}, 80%, 40%, 0.4)`,
+  };
+}
+
+function formatLateMinutesShort(m: number): string {
+  if (m < 60) return `${m}'`;
+  const h = Math.floor(m / 60);
+  const min = m % 60;
+  if (min === 0) return `${h}с`;
+  return `${h}:${min.toString().padStart(2, '0')}`;
+}
+
+function formatLateTitle(m: number, note: string | null): string {
+  let timeStr = "";
+  if (m < 60) timeStr = `${m} дақиқа`;
+  else {
+    const h = Math.floor(m / 60);
+    const min = m % 60;
+    if (min === 0) timeStr = `${h} соат`;
+    else timeStr = `${h} соату ${min} минут`;
+  }
+  return `${timeStr} дер — ${note || "сабаб нест"}`;
 }
 
 function getPercentageColor(pct: number): string {
@@ -112,6 +145,14 @@ function LatePopup({ studentId, date, currentMinutes, currentNote, onSave, onRem
           </button>
           <span className="text-xs text-gray-400 dark:text-slate-500">дақ</span>
         </div>
+        
+        {minutes >= 60 && (
+          <div className="text-center mb-3">
+            <span className="inline-block px-3 py-1 bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 text-xs font-bold rounded-lg border border-amber-200 dark:border-amber-800/50">
+              {formatLateTitle(minutes, null).split(' дер')[0]}
+            </span>
+          </div>
+        )}
 
         <div className="flex gap-1.5 mb-3">
           {[5, 10, 15, 30].map((m) => (
@@ -640,13 +681,14 @@ export default function AttendanceGrid({
                           <button
                             onClick={() => toggle(student.id, day.date)}
                             disabled={isTogglingThis || readOnly}
-                            className={`w-9 h-9 rounded-xl flex items-center justify-center mx-auto transition-all duration-150 ${getAttendanceBtnClass(isTogglingThis, isPresent, isLate, isExcused)}`}
-                            title={isLate ? `${late?.minutes} дақ дер — ${late?.note || "сабаб нест"}` : isExcused ? `Сабабнок: ${exc?.reason || "номаълум"}` : undefined}
+                            className={`w-9 h-9 flex items-center justify-center mx-auto ${getAttendanceBtnClass(isTogglingThis, isPresent, isLate, isExcused)}`}
+                            style={getAttendanceBtnStyle(isPresent, late?.minutes || 0)}
+                            title={isLate ? formatLateTitle(late?.minutes || 0, late?.note || null) : isExcused ? `Сабабнок: ${exc?.reason || "номаълум"}` : undefined}
                           >
                             {isPresent ? (
                               isLate ? (
-                                <span className="text-[11px] font-bold text-white leading-none">
-                                  {late?.minutes}&apos;
+                                <span className="text-[11px] font-bold text-white leading-none tracking-tighter">
+                                  {formatLateMinutesShort(late?.minutes || 0)}
                                 </span>
                               ) : (
                                 <Check
