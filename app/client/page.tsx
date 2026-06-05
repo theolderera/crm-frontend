@@ -120,7 +120,13 @@ export default function ClientPage() {
 
   const handleAIGroupCreated = useCallback((group: Group, students: Student[]) => {
     const groupWithStudents = { ...group, students };
-    setGroups((prev) => [...prev, groupWithStudents]);
+    setMonths((prev) =>
+      prev.map((m) =>
+        m.id === group.courseMonthId
+          ? { ...m, groups: [...m.groups, groupWithStudents] }
+          : m
+      )
+    );
     setSelectedGroup(groupWithStudents);
     setStudents(students);
     toast.success(`"${group.name}" гурӯҳ бо ${students.length} донишҷӯ илова шуд`);
