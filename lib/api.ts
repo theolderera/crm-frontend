@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { Group, Student, Attendance, AuthUser, AttendanceReport } from '@/types';
+import { Group, Student, Attendance, AuthUser, AttendanceReport, CourseMonth } from '@/types';
 
 const api = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api',
