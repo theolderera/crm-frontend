@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { authApi } from "@/lib/api";
@@ -20,8 +20,17 @@ export default function LoginPage() {
   const [showPass, setShowPass] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const { login } = useAuth();
+  const { login, user, loading: authLoading } = useAuth();
   const router = useRouter();
+
+  // Fallback client-side check in case middleware didn't catch it
+  useEffect(() => {
+    if (!authLoading && user) {
+      if (user.role === "ADMIN") router.replace("/admin");
+      else if (user.role === "MENTOR" || user.role === "TEACHER") router.replace("/client");
+      else router.replace("/welcome");
+    }
+  }, [user, authLoading, router]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -34,7 +43,7 @@ export default function LoginPage() {
       toast.success(`Хуш омадед, ${user.firstName}!`);
       if (user.role === "ADMIN") router.replace("/admin");
       else if (user.role === "MENTOR" || user.role === "TEACHER") router.replace("/client");
-      else router.replace("/pending");
+      else router.replace("/welcome");
     } catch (err: unknown) {
       const error = err as { response?: { data?: { message?: string | string[] } } };
       const msg = error?.response?.data?.message || "Хатогӣ рӯй дод";

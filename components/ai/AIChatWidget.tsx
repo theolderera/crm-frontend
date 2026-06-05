@@ -21,6 +21,7 @@ type ChatState =
 
 interface AIChatWidgetProps {
   groups: Group[];
+  latestMonthId?: number;
   onGroupCreated: (group: Group, students: Student[]) => void;
   onStudentsAdded: (groupId: number, students: Student[]) => void;
 }
@@ -40,7 +41,7 @@ function parseStudentNames(raw: string): { firstName: string; lastName?: string 
     });
 }
 
-export default function AIChatWidget({ groups, onGroupCreated, onStudentsAdded }: AIChatWidgetProps) {
+export default function AIChatWidget({ groups, latestMonthId, onGroupCreated, onStudentsAdded }: AIChatWidgetProps) {
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
@@ -111,6 +112,10 @@ export default function AIChatWidget({ groups, onGroupCreated, onStudentsAdded }
 
         // Create group intent
         if (/гурӯҳ.*нав|нав.*гурӯҳ|guruh|create|сохт/.test(lower)) {
+          if (!latestMonthId) {
+            await addAiMessage("Шумо ягон контейнер (давраи омӯзишӣ) надоред. Лутфан аввал аз панели чап Давраи нав созед.");
+            return;
+          }
           await addAiMessage("Хуб! Номи гурӯҳро чӣ мондан мехоҳед?");
           setChatState("AWAITING_GROUP_NAME");
           return;
@@ -184,7 +189,8 @@ export default function AIChatWidget({ groups, onGroupCreated, onStudentsAdded }
         setIsTyping(true);
 
         try {
-          const group = await groupsApi.create({ name: pendingGroupName });
+          if (!latestMonthId) throw new Error("Контейнер интихоб нашудааст");
+          const group = await groupsApi.create({ name: pendingGroupName, courseMonthId: latestMonthId });
           const createdStudents = await Promise.all(
             parsed.map((s) => studentsApi.create({ ...s, groupId: group.id }))
           );

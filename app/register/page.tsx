@@ -42,7 +42,7 @@ function RegisterForm() {
 
   useEffect(() => {
     if (authUser?.isEmailVerified) {
-      router.replace("/pending");
+      router.replace("/welcome");
     }
   }, [authUser, router]);
 
@@ -99,7 +99,7 @@ function RegisterForm() {
       toast.success("Имейл тасдиқ шуд!");
       const user = await authApi.me();
       login(localStorage.getItem("crm_token") || "", user);
-      router.replace("/pending");
+      router.replace("/welcome");
     } catch (err: unknown) {
       const error = err as { response?: { data?: { message?: string | string[] } } };
       const msg = error?.response?.data?.message || "Код нодуруст аст";

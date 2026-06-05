@@ -7,11 +7,12 @@ import Spinner from '@/components/ui/Spinner';
 
 interface GroupFormProps {
   initial?: Group;
-  onSubmit: (data: { name: string; description?: string }) => Promise<void>;
+  courseMonthId?: number;
+  onSubmit: (data: { name: string; description?: string; courseMonthId?: number }) => Promise<void>;
   onCancel: () => void;
 }
 
-export default function GroupForm({ initial, onSubmit, onCancel }: GroupFormProps) {
+export default function GroupForm({ initial, courseMonthId, onSubmit, onCancel }: GroupFormProps) {
   const [name, setName] = useState(initial?.name ?? '');
   const [description, setDescription] = useState(initial?.description ?? '');
   const [loading, setLoading] = useState(false);
@@ -23,7 +24,7 @@ export default function GroupForm({ initial, onSubmit, onCancel }: GroupFormProp
     setLoading(true);
     setError('');
     try {
-      await onSubmit({ name: name.trim(), description: description.trim() || undefined });
+      await onSubmit({ name: name.trim(), description: description.trim() || undefined, courseMonthId });
     } catch (err) {
       setError(getApiError(err));
     } finally {

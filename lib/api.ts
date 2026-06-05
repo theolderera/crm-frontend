@@ -54,9 +54,11 @@ export const usersApi = {
 
 // Groups
 export const groupsApi = {
+  getMonths: () => api.get<CourseMonth[]>('/groups/months').then((r) => r.data),
+  createMonth: () => api.post<CourseMonth>('/groups/months').then((r) => r.data),
   getAll: () => api.get<Group[]>('/groups').then((r) => r.data),
   getOne: (id: number) => api.get<Group>(`/groups/${id}`).then((r) => r.data),
-  create: (data: { name: string; description?: string }) =>
+  create: (data: { name: string; description?: string; courseMonthId: number }) =>
     api.post<Group>('/groups', data).then((r) => r.data),
   update: (id: number, data: { name?: string; description?: string }) =>
     api.patch<Group>(`/groups/${id}`, data).then((r) => r.data),
@@ -117,6 +119,22 @@ export const reportsApi = {
 
   getGlobalLeaderboard: (params?: { from?: string; to?: string }) =>
     api.get<any[]>('/reports/global-leaderboard', { params }).then((r) => r.data),
+};
+
+// Profile
+export const profileApi = {
+  getProfile: () => api.get('/users/profile').then((r) => r.data),
+  updateProfile: (data: { firstName?: string; lastName?: string; phone?: string }) =>
+    api.patch('/users/profile', data).then((r) => r.data),
+  changePassword: (data: { oldPassword: string; newPassword: string }) =>
+    api.patch('/users/profile/password', data).then((r) => r.data),
+  uploadAvatar: (file: File) => {
+    const formData = new FormData();
+    formData.append('avatar', file);
+    return api.post('/users/profile/avatar', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    }).then((r) => r.data);
+  },
 };
 
 export { api };

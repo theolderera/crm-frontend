@@ -14,7 +14,7 @@ export default function RootPage() {
     if (!user) router.replace("/login");
     else if (user.role === "ADMIN") router.replace("/admin");
     else if (user.role === "MENTOR") router.replace("/client");
-    else router.replace("/pending");
+    else router.replace("/welcome");
   }, [user, loading, router]);
 
   return (

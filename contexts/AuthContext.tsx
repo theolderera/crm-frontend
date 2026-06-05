@@ -29,12 +29,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const login = useCallback((newToken: string, newUser: AuthUser) => {
     localStorage.setItem("crm_token", newToken);
+    // Set cookie that expires in 30 days
+    document.cookie = `crm_token=${newToken}; path=/; max-age=${30 * 24 * 60 * 60}; samesite=lax`;
     setToken(newToken);
     setUser(newUser);
   }, []);
 
   const logout = useCallback(() => {
     localStorage.removeItem("crm_token");
+    // Clear cookie
+    document.cookie = "crm_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
     setToken(null);
     setUser(null);
   }, []);

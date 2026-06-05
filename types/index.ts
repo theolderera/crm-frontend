@@ -4,10 +4,21 @@ export interface AuthUser {
   lastName?: string;
   email: string;
   phone: string;
-  role: 'PENDING' | 'MENTOR' | 'TEACHER' | 'ADMIN';
+  role: 'USER' | 'MENTOR' | 'TEACHER' | 'ADMIN';
   isEmailVerified: boolean;
+  avatar?: string;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface CourseMonth {
+  id: number;
+  name: string;
+  startDate: string;
+  endDate: string;
+  mentorId: number;
+  groups: Group[];
+  createdAt: string;
 }
 
 export interface Group {
@@ -16,6 +27,8 @@ export interface Group {
   description?: string;
   mentorId?: number;
   mentor?: AuthUser;
+  courseMonthId?: number;
+  courseMonth?: CourseMonth;
   teacherId?: number;
   teacher?: AuthUser;
   teacher2Id?: number;

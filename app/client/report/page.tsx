@@ -83,7 +83,7 @@ export default function ReportPage() {
   useEffect(() => {
     if (authLoading) return;
     if (!user) router.replace("/login");
-    else if (user.role === "PENDING") router.replace("/pending");
+    else if (user.role === "USER") router.replace("/welcome");
     else if (user.role === "ADMIN") router.replace("/admin");
   }, [user, authLoading, router]);
 

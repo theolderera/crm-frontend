@@ -3,6 +3,7 @@ import { ThemeProvider } from "next-themes";
 import { Toaster } from "react-hot-toast";
 import { AuthProvider } from "@/contexts/AuthContext";
 import "./globals.css";
+import Script from "next/script";
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
 
@@ -104,7 +105,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="tg" className="h-full" suppressHydrationWarning>
       <body className="min-h-full bg-gray-50 dark:bg-slate-950 transition-colors duration-200">
-        <script
+        <Script
+          id="json-ld"
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
