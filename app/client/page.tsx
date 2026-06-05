@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
-import { Group, Student } from "@/types";
+import { Group, Student, CourseMonth } from "@/types";
 import { groupsApi, studentsApi } from "@/lib/api";
 import {
   getWeekStart,
