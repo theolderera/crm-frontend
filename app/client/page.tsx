@@ -183,7 +183,7 @@ export default function ClientPage() {
           groups: m.groups.filter((g) => g.id !== deleteGroup.id),
         }))
       );
-      
+
       // Select another group if the deleted one was selected
       if (selectedGroup?.id === deleteGroup.id) {
         setSelectedGroup(null); // Simple fallback, or logic to pick next
@@ -265,7 +265,7 @@ export default function ClientPage() {
       <div className={`${mobileMenuOpen ? 'block' : 'hidden'} md:block z-50`}>
         {/* Backdrop for mobile */}
         {mobileMenuOpen && (
-          <div 
+          <div
             className="fixed inset-0 bg-slate-900/50 dark:bg-[#020617]/80 backdrop-blur-sm z-40 md:hidden"
             onClick={() => setMobileMenuOpen(false)}
           />
@@ -348,7 +348,7 @@ export default function ClientPage() {
                     {students.length} донишҷӯ
                   </p>
                 </div>
-                
+
                 <div className="flex flex-wrap items-center gap-3 sm:shrink-0">
                   <WeekNavigator
                     weekStart={weekStart}
@@ -357,7 +357,7 @@ export default function ClientPage() {
                     onNext={() => setWeekStart((w) => navigateWeek(w, "next"))}
                     onToday={() => setWeekStart(getWeekStart(new Date()))}
                   />
-                  
+
                   <div className="flex items-center gap-2">
                     <button
                       onClick={() => router.push(`/client/report?groupId=${selectedGroup.id}`)}
@@ -385,22 +385,20 @@ export default function ClientPage() {
                 <div className="flex flex-wrap items-center gap-2 border-b border-slate-200 dark:border-slate-800/80">
                   <button
                     onClick={() => setGroupTab('attendance')}
-                    className={`flex items-center gap-2 px-4 py-3 text-sm font-bold border-b-2 transition-colors ${
-                      groupTab === 'attendance'
+                    className={`flex items-center gap-2 px-4 py-3 text-sm font-bold border-b-2 transition-colors ${groupTab === 'attendance'
                         ? 'border-indigo-600 text-indigo-600 dark:border-indigo-500 dark:text-indigo-400'
                         : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'
-                    }`}
+                      }`}
                   >
                     <CalendarDays size={16} />
                     Рӯйхати ҳузур
                   </button>
                   <button
                     onClick={() => setGroupTab('leaderboard')}
-                    className={`flex items-center gap-2 px-4 py-3 text-sm font-bold border-b-2 transition-colors ${
-                      groupTab === 'leaderboard'
+                    className={`flex items-center gap-2 px-4 py-3 text-sm font-bold border-b-2 transition-colors ${groupTab === 'leaderboard'
                         ? 'border-indigo-600 text-indigo-600 dark:border-indigo-500 dark:text-indigo-400'
                         : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'
-                    }`}
+                      }`}
                   >
                     <Trophy size={16} />
                     Рейтинги гурӯҳ
@@ -410,11 +408,11 @@ export default function ClientPage() {
                 {groupTab === 'attendance' ? (
                   <div className="bg-white dark:bg-[#0f172a] rounded-2xl border border-slate-200 dark:border-slate-800/80 shadow-sm overflow-hidden">
                     <div className="overflow-x-auto">
-                      <AttendanceGrid 
-                        students={students} 
-                        weekDays={weekDays} 
-                        groupId={selectedGroup.id} 
-                        readOnly={isTeacher} 
+                      <AttendanceGrid
+                        students={students}
+                        weekDays={weekDays}
+                        groupId={selectedGroup.id}
+                        readOnly={isTeacher}
                       />
                     </div>
 
@@ -493,10 +491,10 @@ export default function ClientPage() {
             </div>
           ) : (
             <div className="bg-white dark:bg-[#0f172a] rounded-2xl border border-slate-200 dark:border-slate-800/80 shadow-sm flex items-center justify-center min-h-[400px]">
-              <EmptyState 
-                icon={BookOpen} 
-                title="Гурӯҳ интихоб нашудааст" 
-                description="Лутфан аз менюи тарафи чап гурӯҳеро интихоб кунед." 
+              <EmptyState
+                icon={BookOpen}
+                title="Гурӯҳ интихоб нашудааст"
+                description="Лутфан аз менюи тарафи чап гурӯҳеро интихоб кунед."
               />
             </div>
           )}
