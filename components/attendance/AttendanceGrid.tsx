@@ -7,6 +7,7 @@ import { getStudentInitials, formatStudentName } from "@/lib/formatters";
 import { Check, X, Clock, Info, BookOpen } from "lucide-react";
 import Spinner from "@/components/ui/Spinner";
 import toast from "react-hot-toast";
+import { useTranslation } from "@/contexts/LanguageContext";
 
 interface AttendanceGridProps {
   students: Student[];
@@ -53,24 +54,24 @@ function getAttendanceBtnStyle(isPresent: boolean, lateMinutes: number): React.C
   };
 }
 
-function formatLateMinutesShort(m: number): string {
-  if (m < 60) return `${m}'`;
+function formatLateMinutesShort(m: number, t: any): string {
+  if (m < 60) return `${m}${t("attendance.min").charAt(0)}`;
   const h = Math.floor(m / 60);
   const min = m % 60;
-  if (min === 0) return `${h}с`;
+  if (min === 0) return `${h}${t("attendance.hours")}`;
   return `${h}:${min.toString().padStart(2, '0')}`;
 }
 
-function formatLateTitle(m: number, note: string | null): string {
+function formatLateTitle(m: number, note: string | null, t: any): string {
   let timeStr = "";
-  if (m < 60) timeStr = `${m} дақиқа`;
+  if (m < 60) timeStr = `${m} ${t("attendance.min")}`;
   else {
     const h = Math.floor(m / 60);
     const min = m % 60;
-    if (min === 0) timeStr = `${h} соат`;
-    else timeStr = `${h} соату ${min} минут`;
+    if (min === 0) timeStr = `${h} ${t("attendance.hours")}`;
+    else timeStr = `${h} ${t("attendance.hours_and")}${min} ${t("attendance.min")}`;
   }
-  return `${timeStr} дер — ${note || "сабаб нест"}`;
+  return `${timeStr} ${t("attendance.late").toLowerCase()} — ${note || t("attendance.no_reason")}`;
 }
 
 function getPercentageColor(pct: number): string {
@@ -91,6 +92,7 @@ interface LatePopupProps {
 }
 
 function LatePopup({ studentId, date, currentMinutes, currentNote, onSave, onRemove, onClose }: LatePopupProps) {
+  const { t } = useTranslation();
   const [minutes, setMinutes] = useState(currentMinutes ?? 5);
   const [note, setNote] = useState(currentNote ?? "");
   const popupRef = useRef<HTMLDivElement>(null);
@@ -116,11 +118,11 @@ function LatePopup({ studentId, date, currentMinutes, currentNote, onSave, onRem
       <div className="relative">
         <p className="text-xs font-bold text-gray-700 dark:text-slate-200 mb-3 flex items-center gap-1.5">
           <Clock size={13} className="text-amber-500" />
-          Дер омадан
+          {t("attendance.late")}
         </p>
 
         <label className="text-[11px] font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider mb-1.5 block">
-          Чанд дақиқа дер?
+          {t("attendance.late_minutes")}
         </label>
         <div className="flex items-center gap-2 mb-3">
           <button
@@ -143,13 +145,13 @@ function LatePopup({ studentId, date, currentMinutes, currentNote, onSave, onRem
           >
             +
           </button>
-          <span className="text-xs text-gray-400 dark:text-slate-500">дақ</span>
+          <span className="text-xs text-gray-400 dark:text-slate-500">{t("attendance.min")}</span>
         </div>
         
         {minutes >= 60 && (
           <div className="text-center mb-3">
             <span className="inline-block px-3 py-1 bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 text-xs font-bold rounded-lg border border-amber-200 dark:border-amber-800/50">
-              {formatLateTitle(minutes, null).split(' дер')[0]}
+              {formatLateTitle(minutes, null, t).split(` ${t("attendance.late").toLowerCase()}`)[0]}
             </span>
           </div>
         )}
@@ -170,13 +172,13 @@ function LatePopup({ studentId, date, currentMinutes, currentNote, onSave, onRem
         </div>
 
         <label className="text-[11px] font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider mb-1.5 block">
-          Сабаб (ихтиёрӣ)
+          {t("forms.group_desc")} {t("forms.optional")}
         </label>
         <input
           type="text"
           value={note}
           onChange={(e) => setNote(e.target.value)}
-          placeholder="мас: роҳбанд..."
+          placeholder={t("attendance.late_placeholder")}
           className="w-full h-8 px-3 text-sm rounded-lg bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 text-gray-800 dark:text-slate-100 placeholder-gray-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-400 mb-3"
         />
 
@@ -185,14 +187,14 @@ function LatePopup({ studentId, date, currentMinutes, currentNote, onSave, onRem
             onClick={() => onSave(studentId, date, minutes, note)}
             className="flex-1 py-2 text-xs font-bold rounded-xl bg-amber-500 hover:bg-amber-600 text-white transition-colors shadow-sm"
           >
-            Сабт кунед
+            {t("attendance.save")}
           </button>
           {currentMinutes != null && (
             <button
               onClick={() => onRemove(studentId, date)}
               className="py-2 px-3 text-xs font-medium rounded-xl bg-gray-100 dark:bg-slate-700 hover:bg-red-50 dark:hover:bg-red-900/30 text-gray-500 dark:text-slate-400 hover:text-red-500 transition-colors"
             >
-              Нест кунед
+              {t("attendance.remove")}
             </button>
           )}
         </div>
@@ -212,6 +214,7 @@ interface ExcusedPopupProps {
 }
 
 function ExcusedPopup({ studentId, date, currentReason, onSave, onRemove, onClose }: ExcusedPopupProps) {
+  const { t } = useTranslation();
   const [reason, setReason] = useState(currentReason ?? "");
   const popupRef = useRef<HTMLDivElement>(null);
 
@@ -235,16 +238,16 @@ function ExcusedPopup({ studentId, date, currentReason, onSave, onRemove, onClos
       <div className="relative">
         <p className="text-xs font-bold text-gray-700 dark:text-slate-200 mb-3 flex items-center gap-1.5">
           <Info size={13} className="text-red-500" />
-          Сабаби ғайбат
+          {t("attendance.reason_title")}
         </p>
         <label className="text-[11px] font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider mb-1.5 block">
-          Чаро наомад?
+          {t("attendance.reason_desc")}
         </label>
         <input
           type="text"
           value={reason}
           onChange={(e) => setReason(e.target.value)}
-          placeholder="мас: бемор, иҷозат гирифт..."
+          placeholder={t("attendance.reason_placeholder")}
           className="w-full h-8 px-3 text-sm rounded-lg bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 text-gray-800 dark:text-slate-100 placeholder-gray-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-red-400 mb-3"
         />
         <div className="flex gap-2">
@@ -252,14 +255,14 @@ function ExcusedPopup({ studentId, date, currentReason, onSave, onRemove, onClos
             onClick={() => onSave(studentId, date, reason)}
             className="flex-1 py-2 text-xs font-bold rounded-xl bg-red-500 hover:bg-red-600 text-white transition-colors shadow-sm"
           >
-            Сабт кунед
+            {t("attendance.save")}
           </button>
           {currentReason != null && (
             <button
               onClick={() => onRemove(studentId, date)}
               className="py-2 px-3 text-xs font-medium rounded-xl bg-gray-100 dark:bg-slate-700 hover:bg-red-50 dark:hover:bg-red-900/30 text-gray-500 dark:text-slate-400 hover:text-red-500 transition-colors"
             >
-              Нест
+              {t("attendance.remove")}
             </button>
           )}
         </div>
@@ -275,6 +278,7 @@ export default function AttendanceGrid({
   groupId,
   readOnly,
 }: AttendanceGridProps) {
+  const { t } = useTranslation();
   const [attendance, setAttendance] = useState<AttendanceMap>({});
   const [lateData, setLateData] = useState<LateMap>({});
   const [excusedData, setExcusedData] = useState<ExcusedMap>({});
@@ -313,7 +317,7 @@ export default function AttendanceGrid({
       setExcusedData(exc);
       setHwData(hw);
     } catch {
-      toast.error("Маълумот бор нашуд");
+      toast.error(t("common.load_error"));
     } finally {
       setLoading(false);
     }
@@ -350,7 +354,7 @@ export default function AttendanceGrid({
       });
     } catch {
       setAttendance((prev) => ({ ...prev, [key]: current }));
-      toast.error("Сабт нашуд");
+      toast.error(t("common.save_error"));
     } finally {
       setToggling(null);
     }
@@ -373,10 +377,10 @@ export default function AttendanceGrid({
         excused: false,
         excusedReason: null,
       });
-      toast.success(`${minutes} дақиқа дер сабт шуд`);
+      toast.success(`${minutes}${t("attendance.late_saved_suffix")}`);
     } catch {
       setLateData((prev) => ({ ...prev, [key]: prevLate }));
-      toast.error("Сабт нашуд");
+      toast.error(t("common.save_error"));
     }
   };
 
@@ -397,10 +401,10 @@ export default function AttendanceGrid({
         excused: false,
         excusedReason: null,
       });
-      toast.success("Дер бардошта шуд");
+      toast.success(t("attendance.late_removed"));
     } catch {
       setLateData((prev) => ({ ...prev, [key]: prevLate }));
-      toast.error("Хатогӣ рӯй дод");
+      toast.error(t("common.error_occurred"));
     }
   };
 
@@ -421,10 +425,10 @@ export default function AttendanceGrid({
         excused: true,
         excusedReason: reason || null,
       });
-      toast.success("Сабабнок сабт шуд");
+      toast.success(t("attendance.excused_saved"));
     } catch {
       setExcusedData((prev) => ({ ...prev, [key]: prevExc }));
-      toast.error("Сабт нашуд");
+      toast.error(t("common.save_error"));
     }
   };
 
@@ -445,10 +449,10 @@ export default function AttendanceGrid({
         excused: false,
         excusedReason: null,
       });
-      toast.success("Сабабнок бардошта шуд");
+      toast.success(t("attendance.excused_removed"));
     } catch {
       setExcusedData((prev) => ({ ...prev, [key]: prevExc }));
-      toast.error("Хатогӣ рӯй дод");
+      toast.error(t("common.error_occurred"));
     }
   };
 
@@ -474,7 +478,7 @@ export default function AttendanceGrid({
       });
     } catch {
       setHwData((prev) => ({ ...prev, [key]: prevHw }));
-      toast.error("Сабт нашуд");
+      toast.error(t("common.save_error"));
     }
   };
 
@@ -492,9 +496,9 @@ export default function AttendanceGrid({
       });
       setAttendance((prev) => ({ ...prev, ...updates }));
       setExcusedData((prev) => ({ ...prev, ...excUpdates }));
-      toast.success("Ҳама ҳозир қайд шуд");
+      toast.success(t("attendance.all_present_success"));
     } catch {
-      toast.error("Хатогӣ рӯй дод");
+      toast.error(t("common.error_occurred"));
     }
   };
 
@@ -519,7 +523,7 @@ export default function AttendanceGrid({
   if (!students.length) {
     return (
       <div className="flex items-center justify-center h-32 text-gray-400 dark:text-slate-500 text-sm">
-        Ин гурӯҳда талаба нест
+        {t("attendance.no_students")}
       </div>
     );
   }
@@ -535,7 +539,7 @@ export default function AttendanceGrid({
         <thead>
           <tr>
             <th className="text-left py-4 px-5 text-xs font-bold text-slate-500 dark:text-indigo-200 uppercase tracking-wider bg-slate-50/80 dark:bg-indigo-950/40 rounded-tl-2xl min-w-[180px] sticky left-0 border-b border-slate-200/80 dark:border-indigo-900/30 z-10">
-              Талаба
+              {t("attendance.full_name")}
             </th>
             {weekDays.map((day) => {
               const stats = getStats(day.date);
@@ -558,7 +562,7 @@ export default function AttendanceGrid({
                     </span>
                     {day.isToday && (
                       <span className="text-[10px] bg-indigo-600 text-white px-1.5 py-0.5 rounded-full font-medium">
-                        Имрӯз
+                        {t("attendance.today")}
                       </span>
                     )}
                     <div className="flex gap-1.5 mt-0.5">
@@ -589,7 +593,7 @@ export default function AttendanceGrid({
                         onClick={() => markAllPresent(day.date)}
                         className="text-[10px] text-indigo-500 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 hover:underline transition-colors mt-0.5"
                       >
-                        Ҳама ҳозир
+                        {t("attendance.all_present")}
                       </button>
                     )}
                   </div>
@@ -597,7 +601,7 @@ export default function AttendanceGrid({
               );
             })}
             <th className="py-4 px-3 text-center text-xs font-bold text-slate-500 dark:text-indigo-200 uppercase tracking-wider bg-slate-50/80 dark:bg-indigo-950/40 rounded-tr-2xl min-w-[90px] border-b border-slate-200/80 dark:border-indigo-900/30 z-10">
-              Хулоса
+              {t("attendance.summary")}
             </th>
           </tr>
         </thead>
@@ -683,7 +687,7 @@ export default function AttendanceGrid({
                             disabled={isTogglingThis || readOnly}
                             className={`w-9 h-9 flex items-center justify-center mx-auto ${getAttendanceBtnClass(isTogglingThis, isPresent, isLate, isExcused)}`}
                             style={getAttendanceBtnStyle(isPresent, late?.minutes || 0)}
-                            title={isLate ? formatLateTitle(late?.minutes || 0, late?.note || null) : isExcused ? `Сабабнок: ${exc?.reason || "номаълум"}` : undefined}
+                            title={isLate ? formatLateTitle(late?.minutes || 0, late?.note || null, t) : isExcused ? `${t("attendance.excused")}: ${exc?.reason || t("attendance.no_reason")}` : undefined}
                           >
                             {isPresent ? (
                               isLate ? (
@@ -716,7 +720,7 @@ export default function AttendanceGrid({
                                   ? "bg-amber-100 dark:bg-amber-900/40 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-700"
                                   : "bg-gray-50 dark:bg-slate-800 text-gray-400 dark:text-slate-500 hover:text-amber-500 dark:hover:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-900/20 border border-gray-200 dark:border-slate-700 hover:border-amber-200 dark:hover:border-amber-700"
                                 }`}
-                              title="Дер омадан қайд кунед"
+                              title={t("attendance.late")}
                             >
                               <Clock size={9} />
                             </button>
@@ -741,7 +745,7 @@ export default function AttendanceGrid({
                                   ? "bg-red-100 dark:bg-red-900/40 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-700"
                                   : "bg-gray-50 dark:bg-slate-800 text-gray-400 dark:text-slate-500 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 border border-gray-200 dark:border-slate-700 hover:border-red-200 dark:hover:border-red-700"
                                 }`}
-                              title="Сабабнок қайд кунед"
+                              title={t("attendance.reason_title")}
                             >
                               <Info size={9} />
                             </button>
@@ -769,7 +773,7 @@ export default function AttendanceGrid({
                               disabled={readOnly}
                               onChange={(e) => handleHwChange(student.id, day.date, e.target.value)}
                               className="w-10 h-5 text-center text-[10px] font-bold rounded-md bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-gray-700 dark:text-slate-300 focus:outline-none focus:ring-1 focus:ring-purple-400 placeholder:text-[9px] disabled:opacity-50 disabled:cursor-not-allowed"
-                              title="Шумораи масъалаҳои ҳалшуда"
+                              title={t("attendance.hw")}
                             />
                           </div>
                         </div>
@@ -788,18 +792,18 @@ export default function AttendanceGrid({
                     {totalLateMinutes > 0 && (
                       <p className="text-[10px] font-semibold text-amber-500 dark:text-amber-400 mt-0.5 flex items-center justify-center gap-0.5">
                         <Clock size={9} />
-                        {totalLateMinutes} дақ
+                        {totalLateMinutes} {t("attendance.min")}
                       </p>
                     )}
                     {excusedCount > 0 && (
                       <p className="text-[10px] font-semibold text-red-500 dark:text-red-400 mt-0.5 flex items-center justify-center gap-0.5">
                         <Info size={9} />
-                        {excusedCount} сабабнок
+                        {excusedCount} {t("attendance.excused").toLowerCase()}
                       </p>
                     )}
                     <p className="text-[10px] font-semibold text-purple-500 dark:text-purple-400 mt-0.5 flex items-center justify-center gap-0.5">
                       <BookOpen size={9} />
-                      {totalHw} масъала
+                      {totalHw} {t("attendance.hw").toLowerCase()}
                     </p>
                   </td>
                 </tr>

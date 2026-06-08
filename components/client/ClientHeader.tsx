@@ -2,6 +2,8 @@
 
 import React from "react";
 import { Menu, RefreshCw, Users, BookOpen } from "lucide-react";
+import LanguageSwitcher from "@/components/ui/LanguageSwitcher";
+import { useTranslation } from "@/contexts/LanguageContext";
 
 interface ClientHeaderProps {
   onMobileMenuOpen: () => void;
@@ -18,6 +20,8 @@ export default function ClientHeader({
   loading,
   onRefresh,
 }: ClientHeaderProps) {
+  const { t } = useTranslation();
+
   return (
     <header className="h-16 bg-white dark:bg-[#020617] border-b border-slate-200 dark:border-slate-800/60 sticky top-0 z-40 flex items-center justify-between px-4 sm:px-8 font-sans">
       {/* Mobile Menu Button */}
@@ -39,14 +43,16 @@ export default function ClientHeader({
         <div className="hidden lg:flex items-center gap-3 text-xs text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-800/50 rounded-xl px-3 py-2 border border-slate-200 dark:border-slate-700">
           <span className="flex items-center gap-1.5">
             <Users size={14} className="text-indigo-500 dark:text-indigo-400" />
-            <strong className="text-slate-900 dark:text-slate-200">{totalGroups}</strong> гурӯҳ
+            <strong className="text-slate-900 dark:text-slate-200">{totalGroups}</strong> {t("dashboard.groups").toLowerCase()}
           </span>
           <span className="w-px h-3 bg-slate-300 dark:bg-slate-600" />
           <span className="flex items-center gap-1.5">
             <BookOpen size={14} className="text-emerald-500 dark:text-emerald-400" />
-            <strong className="text-slate-900 dark:text-slate-200">{totalStudents}</strong> донишҷӯ
+            <strong className="text-slate-900 dark:text-slate-200">{totalStudents}</strong> {t("dashboard.students").toLowerCase()}
           </span>
         </div>
+
+        <LanguageSwitcher />
 
         <button 
           onClick={onRefresh}

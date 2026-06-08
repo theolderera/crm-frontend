@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { AuthUser, Group, CourseMonth } from "@/types";
 import ThemeToggle from "@/components/ui/ThemeToggle";
+import { useTranslation } from "@/contexts/LanguageContext";
 
 interface ClientSidebarProps {
   months: CourseMonth[];
@@ -41,6 +42,7 @@ export default function ClientSidebar({
   onSupport,
   onProfile
 }: ClientSidebarProps) {
+  const { t } = useTranslation();
   const isMentor = currentUser?.role === "MENTOR";
   const [expandedMonths, setExpandedMonths] = useState<number[]>([]);
 
@@ -69,7 +71,7 @@ export default function ClientSidebar({
           className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/50 hover:text-slate-900 dark:hover:text-slate-200 border border-transparent mb-6"
         >
           <Trophy size={18} />
-          <span className="text-sm font-semibold">Рейтинги Умумӣ</span>
+          <span className="text-sm font-semibold">{t("dashboard.leaderboard")}</span>
         </button>
 
         <button
@@ -77,11 +79,11 @@ export default function ClientSidebar({
           className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/50 hover:text-slate-900 dark:hover:text-slate-200 border border-transparent mb-6"
         >
           <MessageSquareHeart size={18} />
-          <span className="text-sm font-semibold">Дастгирӣ (Support)</span>
+          <span className="text-sm font-semibold">{t("dashboard.support")}</span>
         </button>
 
         <div className="flex items-center justify-between px-2 mb-4">
-          <p className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Контейнерҳо</p>
+          <p className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">{t("dashboard.months")}</p>
           {isMentor && (
             <button
               onClick={onNewMonth}
@@ -198,7 +200,7 @@ export default function ClientSidebar({
             className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 text-xs font-bold rounded-lg transition-colors border border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600"
           >
             <LogOut size={14} />
-            Баромад
+            {t("auth.logout")}
           </button>
         </div>
       </div>

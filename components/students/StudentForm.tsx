@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Student } from '@/types';
 import { getApiError } from '@/lib/formatters';
 import Spinner from '@/components/ui/Spinner';
+import { useTranslation } from "@/contexts/LanguageContext";
 
 interface StudentFormProps {
   initial?: Student;
@@ -13,6 +14,7 @@ interface StudentFormProps {
 }
 
 export default function StudentForm({ initial, groupId, onSubmit, onCancel }: StudentFormProps) {
+  const { t } = useTranslation();
   const [firstName, setFirstName] = useState(initial?.firstName ?? '');
   const [lastName, setLastName] = useState(initial?.lastName ?? '');
   const [phone, setPhone] = useState(initial?.phone ?? '');
@@ -21,7 +23,7 @@ export default function StudentForm({ initial, groupId, onSubmit, onCancel }: St
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!firstName.trim()) { setError('Номро ворид кунед'); return; }
+    if (!firstName.trim()) { setError(t("forms.name_req")); return; }
     setLoading(true);
     setError('');
     try {
@@ -46,7 +48,7 @@ export default function StudentForm({ initial, groupId, onSubmit, onCancel }: St
       <div className="grid grid-cols-2 gap-3">
         <div>
           <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1.5">
-            Ном <span className="text-red-500">*</span>
+            {t("forms.name")} <span className="text-red-500">*</span>
           </label>
           <input
             type="text"
@@ -58,7 +60,7 @@ export default function StudentForm({ initial, groupId, onSubmit, onCancel }: St
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1.5">
-            Насаб <span className="text-gray-400 dark:text-slate-500 font-normal">(ихтиёрӣ)</span>
+            {t("forms.last_name")} <span className="text-gray-400 dark:text-slate-500 font-normal">{t("forms.optional")}</span>
           </label>
           <input
             type="text"
@@ -71,7 +73,7 @@ export default function StudentForm({ initial, groupId, onSubmit, onCancel }: St
       </div>
       <div>
         <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1.5">
-          Рақами телефон <span className="text-gray-400 dark:text-slate-500 font-normal">(ихтиёрӣ)</span>
+          {t("forms.phone")} <span className="text-gray-400 dark:text-slate-500 font-normal">{t("forms.optional")}</span>
         </label>
         <input
           type="tel"
@@ -93,7 +95,7 @@ export default function StudentForm({ initial, groupId, onSubmit, onCancel }: St
           disabled={loading}
           className="flex-1 py-2.5 text-sm font-medium text-gray-700 dark:text-slate-300 bg-gray-100 dark:bg-slate-800 rounded-xl hover:bg-gray-200 dark:hover:bg-slate-700 transition-colors disabled:opacity-50"
         >
-          Бекор
+          {t("forms.cancel")}
         </button>
         <button
           type="submit"
@@ -101,7 +103,7 @@ export default function StudentForm({ initial, groupId, onSubmit, onCancel }: St
           className="flex-1 py-2.5 text-sm font-medium text-white bg-indigo-600 rounded-xl hover:bg-indigo-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
         >
           {loading && <Spinner size="sm" />}
-          {initial ? 'Сабт кардан' : 'Илова кардан'}
+          {initial ? t("forms.save") : t("forms.add")}
         </button>
       </div>
     </form>

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslation } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { authApi } from "@/lib/api";
 import toast from "react-hot-toast";
@@ -21,6 +22,7 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
 
   const { login, user, loading: authLoading } = useAuth();
+  const { t } = useTranslation();
   const router = useRouter();
 
   // Fallback client-side check in case middleware didn't catch it
@@ -46,7 +48,7 @@ export default function LoginPage() {
       else router.replace("/welcome");
     } catch (err: unknown) {
       const error = err as { response?: { data?: { message?: string | string[] } } };
-      const msg = error?.response?.data?.message || "Хатогӣ рӯй дод";
+      const msg = error?.response?.data?.message || t("auth.error_occurred");
       toast.error(Array.isArray(msg) ? msg[0] : msg);
     } finally {
       setLoading(false);
@@ -66,7 +68,7 @@ export default function LoginPage() {
             <Logo size={72} />
           </div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Hozir CRM</h1>
-          <p className="text-sm text-gray-500 dark:text-slate-400 mt-2">Ба системаи назорати давомот хуш омадед</p>
+          <p className="text-sm text-gray-500 dark:text-slate-400 mt-2">{t("welcome.title")}</p>
         </div>
 
         <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-xl shadow-gray-100 dark:shadow-slate-900/50 border border-gray-100 dark:border-slate-800 p-6 sm:p-8">
@@ -119,7 +121,7 @@ export default function LoginPage() {
             ) : (
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1.5">
-                  Имейл
+                  {t("auth.email")}
                 </label>
                 <div className="relative">
                   <Mail size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 dark:text-slate-500 pointer-events-none" />
@@ -138,7 +140,7 @@ export default function LoginPage() {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1.5">
-                Парол
+                {t("auth.password")}
               </label>
               <div className="relative">
                 <Lock size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 dark:text-slate-500 pointer-events-none" />
@@ -146,7 +148,7 @@ export default function LoginPage() {
                   type={showPass ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Паролро ворид кунед"
+                  placeholder={t("auth.password")}
                   required
                   minLength={6}
                   autoComplete="current-password"
@@ -172,15 +174,15 @@ export default function LoginPage() {
               ) : (
                 <LogIn size={17} />
               )}
-              {loading ? "Дохил шуда истодааст..." : "Дохил шавед"}
+              {loading ? t("auth.signing_in") : t("auth.login_button")}
             </button>
           </form>
         </div>
 
         <p className="text-center text-sm text-gray-500 dark:text-slate-400 mt-5">
-          Ҳисоб надоред?{" "}
+          {t("auth.no_account")}{" "}
           <Link href="/register" className="text-indigo-600 dark:text-indigo-400 font-medium hover:underline">
-            Қайд шавед
+            {t("auth.register")}
           </Link>
         </p>
       </div>

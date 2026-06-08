@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Group } from '@/types';
 import { getApiError } from '@/lib/formatters';
 import Spinner from '@/components/ui/Spinner';
+import { useTranslation } from "@/contexts/LanguageContext";
 
 interface GroupFormProps {
   initial?: Group;
@@ -13,6 +14,7 @@ interface GroupFormProps {
 }
 
 export default function GroupForm({ initial, courseMonthId, onSubmit, onCancel }: GroupFormProps) {
+  const { t } = useTranslation();
   const [name, setName] = useState(initial?.name ?? '');
   const [description, setDescription] = useState(initial?.description ?? '');
   const [loading, setLoading] = useState(false);
@@ -20,7 +22,7 @@ export default function GroupForm({ initial, courseMonthId, onSubmit, onCancel }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim()) { setError('Номи гурӯҳро ворид кунед'); return; }
+    if (!name.trim()) { setError(t("forms.group_name_req")); return; }
     setLoading(true);
     setError('');
     try {
@@ -36,7 +38,7 @@ export default function GroupForm({ initial, courseMonthId, onSubmit, onCancel }
     <form onSubmit={handleSubmit} className="flex flex-col gap-4">
       <div>
         <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1.5">
-          Номи гурӯҳ <span className="text-red-500">*</span>
+          {t("forms.group_name")} <span className="text-red-500">*</span>
         </label>
         <input
           type="text"
@@ -48,7 +50,7 @@ export default function GroupForm({ initial, courseMonthId, onSubmit, onCancel }
       </div>
       <div>
         <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1.5">
-          Тавсиф <span className="text-gray-400 dark:text-slate-500 font-normal">(ихтиёрӣ)</span>
+          {t("forms.group_desc")} <span className="text-gray-400 dark:text-slate-500 font-normal">{t("forms.optional")}</span>
         </label>
         <textarea
           value={description}
@@ -70,7 +72,7 @@ export default function GroupForm({ initial, courseMonthId, onSubmit, onCancel }
           disabled={loading}
           className="flex-1 py-2.5 text-sm font-medium text-gray-700 dark:text-slate-300 bg-gray-100 dark:bg-slate-800 rounded-xl hover:bg-gray-200 dark:hover:bg-slate-700 transition-colors disabled:opacity-50"
         >
-          Бекор
+          {t("forms.cancel")}
         </button>
         <button
           type="submit"
@@ -78,7 +80,7 @@ export default function GroupForm({ initial, courseMonthId, onSubmit, onCancel }
           className="flex-1 py-2.5 text-sm font-medium text-white bg-indigo-600 rounded-xl hover:bg-indigo-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
         >
           {loading && <Spinner size="sm" />}
-          {initial ? 'Тағйир додан' : 'Илова кардан'}
+          {initial ? t("forms.update") : t("forms.create")}
         </button>
       </div>
     </form>

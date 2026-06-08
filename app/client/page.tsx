@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { Group, Student, CourseMonth } from "@/types";
+import { useTranslation } from "@/contexts/LanguageContext";
 import { groupsApi, studentsApi } from "@/lib/api";
 import {
   getWeekStart,
@@ -48,6 +49,7 @@ export default function ClientPage() {
   const { user, logout, loading: authLoading } = useAuth();
   const router = useRouter();
 
+  const { t } = useTranslation();
   const [months, setMonths] = useState<CourseMonth[]>([]);
   const [selectedGroup, setSelectedGroup] = useState<Group | null>(null);
   const [students, setStudents] = useState<Student[]>([]);
@@ -115,7 +117,16 @@ export default function ClientPage() {
     }
   }, [selectedGroup]);
 
-  useEffect(() => { if (user?.role === "MENTOR" || user?.role === "TEACHER") loadMonths(); }, [loadMonths, user]);
+  useEffect(() => { 
+    if (!user) {
+      if (!authLoading) router.replace("/login");
+      return;
+    }
+    if (user.role === "ADMIN") router.replace("/admin");
+    else if (user.role === "USER") router.replace("/welcome");
+    else if (user.role === "MENTOR" || user.role === "TEACHER") loadMonths(); 
+  }, [loadMonths, user, authLoading, router]);
+
   useEffect(() => { loadStudents(); }, [loadStudents]);
 
   const handleAIGroupCreated = useCallback((group: Group, students: Student[]) => {
@@ -189,9 +200,9 @@ export default function ClientPage() {
         setSelectedGroup(null); // Simple fallback, or logic to pick next
       }
       setDeleteGroup(null);
-      toast.success(`"${deleteGroup.name}" гурӯҳ ҳазф шуд`);
+      toast.success(t("dashboard.group_deleted", { name: deleteGroup.name }));
     } catch {
-      toast.error("Хатогӣ ҳангоми ҳазф");
+      toast.error(t("dashboard.error_deleting"));
     } finally {
       setDeletingGroup(false);
     }
@@ -209,7 +220,7 @@ export default function ClientPage() {
       }))
     );
     setStudentModal({ open: false });
-    toast.success(`${formatStudentName(student)} илова шуд`);
+    toast.success(t("dashboard.student_added", { name: formatStudentName(student) }));
   };
 
   const handleUpdateStudent = async (data: { firstName: string; lastName?: string | null; phone?: string | null; groupId: number }) => {
@@ -217,7 +228,7 @@ export default function ClientPage() {
     const updated = await studentsApi.update(studentModal.editing.id, data);
     setStudents((prev) => prev.map((s) => (s.id === updated.id ? updated : s)));
     setStudentModal({ open: false });
-    toast.success("Маълумот нав карда шуд");
+    toast.success(t("dashboard.data_updated"));
   };
 
   const handleDeleteStudent = async () => {
@@ -232,10 +243,10 @@ export default function ClientPage() {
           groups: m.groups.map((g) => ({ ...g, students: g.students?.filter((s) => s.id !== deleteStudent.id) || [] })),
         }))
       );
-      toast.success(`${deleteStudent.firstName} ҳазф шуд`);
+      toast.success(t("dashboard.student_deleted", { name: deleteStudent.firstName }));
       setDeleteStudent(null);
     } catch {
-      toast.error("Хатогӣ ҳангоми ҳазф");
+      toast.error(t("dashboard.error_deleting"));
     } finally {
       setDeletingStudent(false);
     }
@@ -325,14 +336,14 @@ export default function ClientPage() {
                         <button
                           onClick={() => setGroupModal({ open: true, editing: selectedGroup })}
                           className="p-1.5 text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 rounded-lg transition-colors"
-                          title="Таҳрир"
+                          title={t("dashboard.edit")}
                         >
                           <Edit2 size={16} />
                         </button>
                         <button
                           onClick={() => setDeleteGroup(selectedGroup)}
                           className="p-1.5 text-slate-400 hover:text-rose-500 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10 rounded-lg transition-colors"
-                          title="Ҳазф"
+                          title={t("dashboard.delete")}
                         >
                           <Trash2 size={16} />
                         </button>
@@ -345,7 +356,7 @@ export default function ClientPage() {
                     </p>
                   )}
                   <p className="text-xs font-bold text-slate-400 dark:text-slate-500 mt-2 uppercase tracking-wider">
-                    {students.length} донишҷӯ
+                    {students.length} {t("dashboard.students").toLowerCase()}
                   </p>
                 </div>
 
@@ -362,10 +373,10 @@ export default function ClientPage() {
                     <button
                       onClick={() => router.push(`/client/report?groupId=${selectedGroup.id}`)}
                       className="flex items-center gap-1.5 px-3 py-2 bg-white dark:bg-[#020617] text-slate-700 dark:text-slate-300 text-sm font-bold rounded-xl border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors shadow-sm"
-                      title="Ҳисобот"
+                      title={t("dashboard.report")}
                     >
                       <FileText size={16} className="text-indigo-500" />
-                      <span className="hidden sm:inline">Ҳисобот</span>
+                      <span className="hidden sm:inline">{t("dashboard.report")}</span>
                     </button>
                     {isMentor && (
                       <button
@@ -373,7 +384,7 @@ export default function ClientPage() {
                         className="flex items-center gap-1.5 px-3 py-2 bg-indigo-600 text-white text-sm font-bold rounded-xl hover:bg-indigo-700 transition-colors shadow-sm"
                       >
                         <UserPlus size={16} />
-                        <span className="hidden sm:inline">Донишҷӯ</span>
+                        <span className="hidden sm:inline">{t("dashboard.student")}</span>
                       </button>
                     )}
                   </div>
@@ -391,7 +402,7 @@ export default function ClientPage() {
                       }`}
                   >
                     <CalendarDays size={16} />
-                    Рӯйхати ҳузур
+                    {t("dashboard.attendance_list")}
                   </button>
                   <button
                     onClick={() => setGroupTab('leaderboard')}
@@ -401,7 +412,7 @@ export default function ClientPage() {
                       }`}
                   >
                     <Trophy size={16} />
-                    Рейтинги гурӯҳ
+                    {t("dashboard.group_leaderboard")}
                   </button>
                 </div>
 
@@ -422,7 +433,7 @@ export default function ClientPage() {
                         <div className="flex items-center gap-2 mb-4">
                           <Settings size={16} className="text-slate-400" />
                           <h3 className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                            Идоракунии донишҷӯён
+                            {t("dashboard.manage_students")}
                           </h3>
                         </div>
                         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
@@ -443,14 +454,14 @@ export default function ClientPage() {
                                 <button
                                   onClick={() => setStudentModal({ open: true, editing: student })}
                                   className="p-1.5 text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 rounded-lg transition-colors"
-                                  title="Таҳрир"
+                                  title={t("dashboard.edit")}
                                 >
                                   <Edit2 size={14} />
                                 </button>
                                 <button
                                   onClick={() => setDeleteStudent(student)}
                                   className="p-1.5 text-slate-400 hover:text-rose-500 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10 rounded-lg transition-colors"
-                                  title="Ҳазф"
+                                  title={t("dashboard.delete")}
                                 >
                                   <Trash2 size={14} />
                                 </button>
@@ -493,8 +504,8 @@ export default function ClientPage() {
             <div className="bg-white dark:bg-[#0f172a] rounded-2xl border border-slate-200 dark:border-slate-800/80 shadow-sm flex items-center justify-center min-h-[400px]">
               <EmptyState
                 icon={BookOpen}
-                title="Гурӯҳ интихоб нашудааст"
-                description="Лутфан аз менюи тарафи чап гурӯҳеро интихоб кунед."
+                title={t("dashboard.no_group_selected_title")}
+                description={t("dashboard.no_group_selected_desc")}
               />
             </div>
           )}
@@ -505,7 +516,7 @@ export default function ClientPage() {
       <Modal
         isOpen={groupModal.open}
         onClose={() => setGroupModal({ open: false })}
-        title={groupModal.editing ? "Гурӯҳро тағйир додан" : "Гурӯҳи нав"}
+        title={groupModal.editing ? t("dashboard.edit_group") : t("dashboard.new_group")}
       >
         <GroupForm
           initial={groupModal.editing}
@@ -518,7 +529,7 @@ export default function ClientPage() {
       <Modal
         isOpen={studentModal.open}
         onClose={() => setStudentModal({ open: false })}
-        title={studentModal.editing ? "Маълумотро тағйир додан" : "Донишҷӯи нав"}
+        title={studentModal.editing ? t("dashboard.edit_student") : t("dashboard.new_student")}
       >
         {selectedGroup && (
           <StudentForm
@@ -534,8 +545,8 @@ export default function ClientPage() {
         isOpen={!!deleteGroup}
         onClose={() => setDeleteGroup(null)}
         onConfirm={handleDeleteGroup}
-        title="Тасдиқи ҳазф"
-        message={`Оё мутмаин ҳастед, ки гурӯҳи "${deleteGroup?.name}" ва ҳамаи донишҷӯёни онро ҳазф мекунед? Ин амалро бекор кардан ғайриимкон аст.`}
+        title={t("dashboard.confirm_delete")}
+        message={deleteGroup ? t("dashboard.delete_group_msg", { name: deleteGroup.name }) : ""}
         loading={deletingGroup}
       />
 
@@ -543,8 +554,8 @@ export default function ClientPage() {
         isOpen={!!deleteStudent}
         onClose={() => setDeleteStudent(null)}
         onConfirm={handleDeleteStudent}
-        title="Тасдиқи ҳазф"
-        message={`Оё мутмаин ҳастед, ки ${deleteStudent ? formatStudentName(deleteStudent) : ""}-ро ҳазф мекунед?`}
+        title={t("dashboard.confirm_delete")}
+        message={deleteStudent ? t("dashboard.delete_student_msg", { name: formatStudentName(deleteStudent) }) : ""}
         loading={deletingStudent}
       />
 

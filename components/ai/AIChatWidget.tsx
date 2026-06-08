@@ -4,6 +4,7 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { MessageSquare, X, Send, Bot, Loader2, Sparkles, RotateCcw } from "lucide-react";
 import { groupsApi, studentsApi } from "@/lib/api";
 import { Group, Student } from "@/types";
+import { useTranslation } from "@/contexts/LanguageContext";
 
 interface Message {
   id: string;
@@ -42,6 +43,7 @@ function parseStudentNames(raw: string): { firstName: string; lastName?: string 
 }
 
 export default function AIChatWidget({ groups, latestMonthId, onGroupCreated, onStudentsAdded }: AIChatWidgetProps) {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
@@ -76,9 +78,9 @@ export default function AIChatWidget({ groups, latestMonthId, onGroupCreated, on
   // Greet on first open
   useEffect(() => {
     if (open && messages.length === 0) {
-      addAiMessage("Салом! 👋 Ман дастёри AI-и шумо ҳастам.\n\nБарои оғоз яке аз тугмаҳои зеринро пахш кунед ё худ паём нависед.", 500);
+      addAiMessage(t("ai.welcome"), 500);
     }
-  }, [open, messages.length, addAiMessage]);
+  }, [open, messages.length, addAiMessage, t]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -326,17 +328,11 @@ export default function AIChatWidget({ groups, latestMonthId, onGroupCreated, on
         >
           {/* Header */}
           <div className="flex items-center gap-3 px-4 py-3 bg-indigo-600 dark:bg-indigo-700 flex-shrink-0">
-            <div className="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center">
-              <Bot size={20} className="text-white" />
+            <div className="flex items-center gap-2 text-white">
+              <Bot size={20} />
+              <span className="font-bold text-sm">{t("ai.title")}</span>
             </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold text-white leading-none">AI Дастёр</p>
-              <p className="text-[11px] text-indigo-200 mt-0.5 flex items-center gap-1">
-                <span className="w-1.5 h-1.5 bg-green-400 rounded-full" />
-                Омода
-              </p>
-            </div>
-            <Sparkles size={16} className="text-indigo-200 flex-shrink-0" />
+            <Sparkles size={16} className="text-indigo-200 flex-shrink-0 ml-auto" />
             <button
               onClick={() => {
                 setMessages([]);
@@ -375,24 +371,9 @@ export default function AIChatWidget({ groups, latestMonthId, onGroupCreated, on
 
             {/* Typing indicator */}
             {isTyping && (
-              <div className="flex items-end gap-2 justify-start">
-                <div className="w-6 h-6 rounded-full bg-indigo-100 dark:bg-indigo-900/60 flex items-center justify-center flex-shrink-0">
-                  <Bot size={13} className="text-indigo-600 dark:text-indigo-400" />
-                </div>
-                <div className="bg-gray-100 dark:bg-slate-800 rounded-2xl rounded-bl-sm px-4 py-3 flex items-center gap-1.5">
-                  <span
-                    className="w-2 h-2 bg-gray-400 dark:bg-slate-500 rounded-full animate-bounce"
-                    style={{ animationDelay: "0ms" }}
-                  />
-                  <span
-                    className="w-2 h-2 bg-gray-400 dark:bg-slate-500 rounded-full animate-bounce"
-                    style={{ animationDelay: "160ms" }}
-                  />
-                  <span
-                    className="w-2 h-2 bg-gray-400 dark:bg-slate-500 rounded-full animate-bounce"
-                    style={{ animationDelay: "320ms" }}
-                  />
-                </div>
+              <div className="flex items-center gap-2 text-gray-400 dark:text-slate-500 text-xs px-2 mb-2 animate-pulse">
+                <Loader2 size={12} className="animate-spin" />
+                {t("ai.typing").replace("{{name}}", "AI")}
               </div>
             )}
             <div ref={messagesEndRef} />
@@ -420,25 +401,18 @@ export default function AIChatWidget({ groups, latestMonthId, onGroupCreated, on
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              onKeyDown={handleKeyDown}
-              disabled={isDisabled}
-              placeholder={
-                chatState === "AWAITING_GROUP_NAME"
-                  ? "Номи гурӯҳ..."
-                  : chatState === "AWAITING_STUDENTS" || chatState === "AWAITING_NEW_STUDENTS"
-                  ? "Ном, Ном, Ном..."
-                  : chatState === "AWAITING_EXISTING_GROUP"
-                  ? "Рақами гурӯҳ (1, 2, ...)"
-                  : chatState === "PROCESSING"
-                  ? "Коркард..."
-                  : "Паём нависед..."
-              }
-              className="flex-1 text-sm px-3.5 py-2 rounded-xl border border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-800 text-gray-800 dark:text-slate-200 placeholder-gray-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent disabled:opacity-50 transition-colors"
+              onKeyDown={(e) => {
+                if (e.key === "Enter") handleSend(input);
+              }}
+              placeholder={t("ai.placeholder")}
+              disabled={chatState === "PROCESSING" || isTyping}
+              className="flex-1 min-w-0 bg-transparent text-sm text-gray-800 dark:text-slate-200 placeholder-gray-400 focus:outline-none disabled:opacity-50"
             />
             <button
               onClick={() => handleSend(input)}
               disabled={!input.trim() || isDisabled}
-              className="w-10 h-10 flex-shrink-0 rounded-xl bg-indigo-600 text-white flex items-center justify-center hover:bg-indigo-700 active:scale-95 transition-all disabled:opacity-40 disabled:cursor-not-allowed disabled:active:scale-100"
+              className="w-8 h-8 rounded-full bg-indigo-600 hover:bg-indigo-700 text-white flex items-center justify-center transition-transform active:scale-90 disabled:opacity-50 disabled:cursor-not-allowed shrink-0 shadow-md shadow-indigo-500/20"
+              title={t("ai.send")}
             >
               {chatState === "PROCESSING" ? (
                 <Loader2 size={15} className="animate-spin" />

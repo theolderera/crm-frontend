@@ -2,6 +2,7 @@
 
 import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useTranslation } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { authApi } from "@/lib/api";
 import toast from "react-hot-toast";
@@ -32,6 +33,7 @@ function RegisterForm() {
   const [showPass, setShowPass] = useState(false);
   const [loading, setLoading] = useState(false);
   const { login, user: authUser } = useAuth();
+  const { t } = useTranslation();
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -54,7 +56,7 @@ function RegisterForm() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (form.password !== form.confirmPassword) {
-      toast.error("Паролҳо мувофиқ нестанд");
+      toast.error(t("auth.pass_mismatch"));
       return;
     }
     setLoading(true);
@@ -76,11 +78,11 @@ function RegisterForm() {
 
       const { token } = await authApi.register(payload);
       localStorage.setItem("crm_token", token);
-      toast.success("Код ба имейли шумо фиристода шуд!");
+      toast.success(t("auth.code_sent"));
       setStep("verify");
     } catch (err: unknown) {
       const error = err as { response?: { data?: { message?: string | string[] } } };
-      const msg = error?.response?.data?.message || "Хатогӣ рӯй дод";
+      const msg = error?.response?.data?.message || t("auth.error_occurred");
       toast.error(Array.isArray(msg) ? msg[0] : msg);
     } finally {
       setLoading(false);
@@ -90,19 +92,19 @@ function RegisterForm() {
   async function handleVerify(e: React.FormEvent) {
     e.preventDefault();
     if (verificationCode.length !== 6) {
-      toast.error("Код бояд 6 рақам бошад");
+      toast.error(t("auth.code_length"));
       return;
     }
     setLoading(true);
     try {
       await authApi.verifyEmail(verificationCode);
-      toast.success("Имейл тасдиқ шуд!");
+      toast.success(t("auth.email_verified"));
       const user = await authApi.me();
       login(localStorage.getItem("crm_token") || "", user);
       router.replace("/welcome");
     } catch (err: unknown) {
       const error = err as { response?: { data?: { message?: string | string[] } } };
-      const msg = error?.response?.data?.message || "Код нодуруст аст";
+      const msg = error?.response?.data?.message || t("auth.invalid_code");
       toast.error(Array.isArray(msg) ? msg[0] : msg);
     } finally {
       setLoading(false);
@@ -122,12 +124,12 @@ function RegisterForm() {
             <Logo size={72} />
           </div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-            {step === "register" ? "Қайд шавед" : "Тасдиқи имейл"}
+            {step === "register" ? t("auth.register") : t("auth.verify_email")}
           </h1>
           <p className="text-gray-500 dark:text-slate-400 mt-1 text-sm">
             {step === "register"
-              ? "Барои кор ба системаи CRM ҳисоб созед"
-              : `Мо ба ${form.email} коди 6-рақама фиристодем`}
+              ? t("auth.create_account_desc")
+              : t("auth.verify_desc", { email: form.email })}
           </p>
         </div>
 
@@ -138,7 +140,7 @@ function RegisterForm() {
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1.5">
-                    Ном <span className="text-red-500">*</span>
+                    {t("auth.first_name")} <span className="text-red-500">*</span>
                   </label>
                   <div className="relative">
                     <User size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-slate-500 pointer-events-none" />
@@ -155,7 +157,7 @@ function RegisterForm() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1.5">
-                    Насаб
+                    {t("auth.last_name")}
                   </label>
                   <input
                     type="text"
@@ -170,7 +172,7 @@ function RegisterForm() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1.5">
-                  Имейл <span className="text-red-500">*</span>
+                  {t("auth.email")} <span className="text-red-500">*</span>
                 </label>
                 <div className="relative">
                   <Mail size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 dark:text-slate-500 pointer-events-none" />
@@ -188,7 +190,7 @@ function RegisterForm() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1.5">
-                  Рақами телефон <span className="text-red-500">*</span>
+                  {t("auth.phone")} <span className="text-red-500">*</span>
                 </label>
                 <div className="flex w-full rounded-xl border border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-800 overflow-hidden focus-within:ring-2 focus-within:ring-indigo-500 focus-within:border-transparent transition">
                   <div className="flex items-center justify-center px-3.5 bg-gray-100/50 dark:bg-slate-800/80 border-r border-gray-200 dark:border-slate-700">
@@ -209,7 +211,7 @@ function RegisterForm() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1.5">
-                  Парол <span className="text-red-500">*</span>
+                  {t("auth.password")} <span className="text-red-500">*</span>
                 </label>
                 <div className="relative">
                   <Lock size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 dark:text-slate-500 pointer-events-none" />
@@ -235,7 +237,7 @@ function RegisterForm() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1.5">
-                  Паролро тасдиқ кунед <span className="text-red-500">*</span>
+                  {t("auth.confirm_password")} <span className="text-red-500">*</span>
                 </label>
                 <div className="relative">
                   <Lock size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 dark:text-slate-500 pointer-events-none" />
@@ -243,7 +245,7 @@ function RegisterForm() {
                     type={showPass ? "text" : "password"}
                     value={form.confirmPassword}
                     onChange={set("confirmPassword")}
-                    placeholder="Паролро такрор кунед"
+                    placeholder={t("auth.confirm_password_placeholder")}
                     required
                     minLength={6}
                     autoComplete="new-password"
@@ -262,7 +264,7 @@ function RegisterForm() {
                 ) : (
                   <UserPlus size={17} />
                 )}
-                {loading ? "Қайд шуда истодааст..." : "Қайд шавед"}
+                {loading ? t("auth.verifying") : t("auth.register")}
               </button>
             </form>
           ) : (
@@ -272,7 +274,7 @@ function RegisterForm() {
                   <ShieldCheck size={32} />
                 </div>
                 <p className="text-sm text-gray-600 dark:text-slate-400 text-center mb-6">
-                  Лутфан коди 6-рақамаеро, ки ба имейли шумо фиристода шуд, ворид кунед.
+                  {t("auth.verify_desc", { email: form.email })}
                 </p>
 
                 <div className="w-full">
@@ -299,7 +301,7 @@ function RegisterForm() {
                   <span className="w-5 h-5 border-2 border-white/40 border-t-white rounded-full animate-spin" />
                 ) : (
                   <>
-                    <span>Тасдиқ кардан</span>
+                    <span>{t("auth.verify_button")}</span>
                     <ArrowRight size={18} />
                   </>
                 )}
@@ -310,16 +312,16 @@ function RegisterForm() {
                 onClick={() => setStep("register")}
                 className="w-full text-center text-sm text-gray-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition"
               >
-                Бозгашт ба қайд
+                {t("common.back")}
               </button>
             </form>
           )}
         </div>
 
         <p className="text-center text-sm text-gray-500 dark:text-slate-400 mt-5">
-          Аллакай ҳисоб доред?{" "}
+          {t("auth.have_account")}{" "}
           <Link href="/login" className="text-indigo-600 dark:text-indigo-400 font-medium hover:underline">
-            Дохил шавед
+            {t("auth.login_button")}
           </Link>
         </p>
       </div>
