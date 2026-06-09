@@ -692,7 +692,7 @@ export default function AttendanceGrid({
                             {isPresent ? (
                               isLate ? (
                                 <span className="text-[11px] font-bold text-white leading-none tracking-tighter">
-                                  {formatLateMinutesShort(late?.minutes || 0)}
+                                  {formatLateMinutesShort(late?.minutes || 0, t)}
                                 </span>
                               ) : (
                                 <Check
