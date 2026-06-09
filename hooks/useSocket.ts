@@ -14,7 +14,8 @@ export function useSocket(token: string | null) {
     const socketInstance = io(url, {
       auth: {
         token: `Bearer ${token}`
-      }
+      },
+      transports: ['websocket', 'polling'],
     });
 
     socketInstance.on('connect', () => {
