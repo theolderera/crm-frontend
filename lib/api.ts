@@ -22,15 +22,18 @@ export const authApi = {
     email: string;
     phone: string;
     password: string;
-  }) => api.post<{ token: string; user: AuthUser }>('/auth/register', data).then((r) => r.data),
+  }) => api.post<{ token: string; user: AuthUser; emailSent: boolean }>('/auth/register', data).then((r) => r.data),
 
   login: (data: { phone?: string; email?: string; password: string }) =>
     api.post<{ token: string; user: AuthUser }>('/auth/login', data).then((r) => r.data),
 
   me: () => api.get<AuthUser>('/auth/me').then((r) => r.data),
-  
-  verifyEmail: (code: string) => 
+
+  verifyEmail: (code: string) =>
     api.post<{ success: boolean; message: string }>('/auth/verify-email', { code }).then((r) => r.data),
+
+  resendCode: () =>
+    api.post<{ success: boolean; emailSent: boolean }>('/auth/resend-code').then((r) => r.data),
 };
 
 // Admin: Users

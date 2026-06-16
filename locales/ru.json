@@ -28,7 +28,12 @@
     "verifying": "Проверка...",
     "logout": "Выйти",
     "invalid_credentials": "Неверный логин или пароль",
-    "error_occurred": "Произошла ошибка"
+    "error_occurred": "Произошла ошибка",
+    "email_failed": "Не удалось отправить код. Нажмите «Отправить снова».",
+    "code_resent": "Код отправлен повторно!",
+    "no_code_received": "Не получили код?",
+    "resend_code": "Отправить снова",
+    "resend_in": "Повторная отправка через {{seconds}} сек"
   },
   "common": {
     "loading": "Загрузка...",

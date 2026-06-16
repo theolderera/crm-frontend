@@ -16,6 +16,7 @@ import {
   UserPlus,
   ShieldCheck,
   ArrowRight,
+  RefreshCw,
 } from "lucide-react";
 import ThemeToggle from "@/components/ui/ThemeToggle";
 import Logo from "@/components/ui/Logo";
@@ -41,12 +42,21 @@ function RegisterForm() {
     searchParams.get("step") === "verify" ? "verify" : "register"
   );
   const [verificationCode, setVerificationCode] = useState("");
+  const [resending, setResending] = useState(false);
+  const [resendCooldown, setResendCooldown] = useState(0);
 
   useEffect(() => {
     if (authUser?.isEmailVerified) {
       router.replace("/welcome");
     }
   }, [authUser, router]);
+
+  // Ҳисобкунаки баръакс барои тугмаи "Бори дигар фиристодан".
+  useEffect(() => {
+    if (resendCooldown <= 0) return;
+    const timer = setTimeout(() => setResendCooldown((s) => s - 1), 1000);
+    return () => clearTimeout(timer);
+  }, [resendCooldown]);
 
   function set(field: string) {
     return (e: React.ChangeEvent<HTMLInputElement>) =>
@@ -76,16 +86,40 @@ function RegisterForm() {
       };
       if (form.lastName.trim()) payload.lastName = form.lastName.trim();
 
-      const { token } = await authApi.register(payload);
+      const { token, emailSent } = await authApi.register(payload);
       localStorage.setItem("crm_token", token);
-      toast.success(t("auth.code_sent"));
       setStep("verify");
+      setResendCooldown(60);
+      if (emailSent) {
+        toast.success(t("auth.code_sent"));
+      } else {
+        // Аккаунт сохта шуд, аммо почта нарасид — корбар метавонад бори дигар фиристад.
+        toast.error(t("auth.email_failed"));
+      }
     } catch (err: unknown) {
       const error = err as { response?: { data?: { message?: string | string[] } } };
       const msg = error?.response?.data?.message || t("auth.error_occurred");
       toast.error(Array.isArray(msg) ? msg[0] : msg);
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function handleResend() {
+    if (resendCooldown > 0 || resending) return;
+    setResending(true);
+    try {
+      await authApi.resendCode();
+      toast.success(t("auth.code_resent"));
+      setResendCooldown(60);
+    } catch (err: unknown) {
+      const error = err as { response?: { data?: { message?: string | string[] } } };
+      const msg = error?.response?.data?.message || t("auth.error_occurred");
+      toast.error(Array.isArray(msg) ? msg[0] : msg);
+      // Агар сервер бо сабаби маҳдудияти вақт рад кунад, тугмаро муваққатан хомӯш мекунем.
+      setResendCooldown(60);
+    } finally {
+      setResending(false);
     }
   }
 
@@ -306,6 +340,27 @@ function RegisterForm() {
                   </>
                 )}
               </button>
+
+              {/* Бори дигар фиристодани код */}
+              <div className="flex flex-col items-center gap-1">
+                <span className="text-sm text-gray-500 dark:text-slate-400">
+                  {t("auth.no_code_received")}
+                </span>
+                <button
+                  type="button"
+                  onClick={handleResend}
+                  disabled={resending || resendCooldown > 0}
+                  className="inline-flex items-center gap-1.5 text-sm font-semibold text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 disabled:text-gray-400 dark:disabled:text-slate-500 disabled:cursor-not-allowed transition"
+                >
+                  <RefreshCw
+                    size={15}
+                    className={resending ? "animate-spin" : ""}
+                  />
+                  {resendCooldown > 0
+                    ? t("auth.resend_in", { seconds: resendCooldown })
+                    : t("auth.resend_code")}
+                </button>
+              </div>
 
               <button
                 type="button"
